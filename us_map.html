@@ -23,11 +23,11 @@ a:hover{
 }
 
 .states {
-    fill: #e3e3e3;
-    stroke: #333;
-    stroke-width: 0.5;
-    /* stroke: #fff; 
-    stroke-width:1px; */
+    fill: lightgrey;
+    /* stroke: #333; */
+    /* stroke-width: 0.5;  */
+    stroke: #fff; 
+    stroke-width:1px;
 }
 .states:hover{
   opacity: .6;
@@ -43,12 +43,23 @@ a:hover{
   color: #fff;
   border-radius: 2px;
 }
+.under5 {
+  fill: steelblue;
+  fill-opacity: .6;
+  stroke: #fff;
+}
+.r5to13 {
+  fill:red;
+  fill-opacity: .6;
+  stroke: #fff;
+}
 
 </style>
 <body>
+    <div id="circle"></div>
     <div id="dataviz_builtWithD3"></div>
 
-    <h1>Infant Mortality Rates by State</h1>
+    <h1>US Population Census</h1>
 
     <p>Source: <a href="http://www.cdc.gov/nchs/deaths.htm">CDC</a>. This data is from 2011-2012.</p>
 
@@ -88,6 +99,39 @@ var tip = d3.tip()
        }
   })
 
+var tip1 = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-5, 0])
+    .html(function(d) {
+
+    var dataRow = countryById.get(d.properties.name);
+        if (dataRow) {
+        //    console.log(dataRow);
+            return dataRow.State + ": " +"<br />"   
+            +"5-13: " + dataRow.r5to13Years + "<br />"
+        } else {
+        //    console.log("no dataRow", d);
+            return d.properties.name + ": No data.";
+        }
+    })
+
+var tip2 = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-5, 0])
+    .html(function(d) {
+
+    var dataRow = countryById.get(d.properties.name);
+        if (dataRow) {
+       
+            return dataRow.State + ": " +"<br />"   
+            +"14-17: "+ dataRow.r14to17Years+ "<br />"
+        } else {
+       
+            return d.properties.name + ": No data.";
+        }
+    })
+
+
 
 var svg = d3.select('#vis').append('svg')
     .attr('width', width)
@@ -102,13 +146,23 @@ var projection = d3.geo.albersUsa()
 var path = d3.geo.path()
     .projection(projection);
 
-var colorScale = d3.scale.linear().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]).interpolate(d3.interpolateLab);
+var colorScale = d3.scale.linear()
+                    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c"])
+                    .domain([100, 1000, 10000, 100000, 1000000, 1000000])
+                    .interpolate(d3.interpolateLab);
+
+var radiusScale = d3.scale
+                    .linear()
+                    .range([1,50])
+                    .domain([0, 5000000]);
+
 
 var countryById = d3.map();
 
 // we use queue because we have 2 data files to load.
 queue()
     .defer(d3.json, "USA.json")
+    .defer(d3.json,"usa-state-capitals.json")
     .defer(d3.csv, "census.csv", typeAndSet) // process
     .await(loaded);
 
@@ -129,17 +183,76 @@ function typeAndSet(d) {
 
 function getColor(d) {
     var dataRow = countryById.get(d.properties.name);
-    //console.log(d.)
 
     if (dataRow) {
         // console.log(dataRow);
-        return colorScale(dataRow);
-        // return "#ccc";
+        return colorScale(dataRow.Under5Years);
+
     } else {
         // console.log("no dataRow", d);
         return "#ccc";
     }
 }
+
+function getRadius(d) {
+    var dataRow = countryById.get(d.properties.name);
+
+    if (dataRow) {
+       console.log(dataRow);
+        return radiusScale(dataRow.Under5Years);
+    }
+    return 5;
+    };
+
+function r5_13_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+
+    if (dataRow) {
+       console.log(dataRow);
+        return radiusScale(dataRow.r5to13Years);
+    }
+    return 5;
+    };
+
+function r14_17_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+
+    if (dataRow) {
+       console.log(dataRow);
+        return radiusScale(dataRow.r14to17Years);
+    }
+    return 5;
+    };
+
+function r18_24_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+
+    if (dataRow) {
+       console.log(dataRow);
+        return radiusScale(dataRow.r18to24Years);
+    }
+    return 5;
+    };
+
+function r25_44_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+
+    if (dataRow) {
+       console.log(dataRow);
+        return radiusScale(dataRow.r25to44Years);
+    }
+    return 5;
+    };
+
+function r45_64_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+
+    if (dataRow) {
+       console.log(dataRow);
+        return radiusScale(dataRow.r45to64Years);
+    }
+    return 5;
+    };
 
 
 
@@ -147,19 +260,21 @@ function getColor(d) {
 
 
 // main data binding function
-function loaded(error, usa, census) {
+function loaded(error, usa,coor, census) {
 
     // console.log(usa);
     // console.log(census);
-   ;
+    // console.log(coor);
 
 	colorScale.domain(d3.extent(census, function(d) {
 		return [d.Under5Years, d.r5to13Years, d.r14to17Years, d.r18to24Years, d.r45to64years, d.r65YearsandOver]; 
 	}));
 
     var states = topojson.feature(usa, usa.objects.units).features;
-
-    var map = svg.selectAll('path.states')
+    
+    
+    var colormap = svg.append("g")
+        .selectAll('states')
         .data(states)
         .enter()
         .append('path')
@@ -171,18 +286,104 @@ function loaded(error, usa, census) {
 			// console.log(d);
             // console.log(d.properties.name);
             return getColor(d);
+        });
+
+    var under_5_bubbles = svg.append('g')
+        .attr('class', 'bubble')
+        .selectAll("circle")
+        .data(states)
+        .enter().append("circle")
+        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+        .attr("r", function(d, i) {
+            return getRadius(d);
         })
-        .append("title");
-    map.append("path")
-    .attr("class","bubble")
-    .selectAll("circle")
-    .data(states)
-    .enter()
-    .append("circle")
-    .attr("transform", function(d){
-        return "translate("+path.centroid(d)+")"
-    })
-    .attr("r",1.5);
+        .on('mouseover', tip1.show)
+        .on('mouseout', tip1.hide)
+        .attr("fill","red")
+        .style("opacity",0.3);
+
+    var r5to13Years_bubles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r5_13_Radius(d)
+        })
+        .on('mouseover', tip2.show)
+        .on('mouseout', tip2.hide)
+        .attr("fill","blue")
+        .style("opacity",0.3);
+
+    var r14to17Years_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r14_17_Radius(d)
+        })
+        .attr("fill","green")
+        .style("opacity",0.3);
+    
+    var r18to24Years_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r18_24_Radius(d)
+        })
+        .attr("fill","yellow")
+        .style("opacity",0.3);
+    
+    var r25to44Years_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r25_44_Radius(d)
+        })
+        .attr("fill","brown")
+        .style("opacity",0.3);
+    
+    var r45to65Years_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r45_64_Radius(d)
+        })
+        .attr("fill","black")
+        .style("opacity",0.3);
+ 
+    
+     
+        
+
+
 
     var linear = colorScale;
 
@@ -202,6 +403,7 @@ function loaded(error, usa, census) {
 
     // Initialize the button
     var dropdownButton = d3.select("#dataviz_builtWithD3")
+    // var dropdownButton = d3.select("#vis")
     .append('select')
 
     // add the options to the button
