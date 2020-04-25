@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,300' rel='stylesheet' type='text/css'>
+<style>
+
+
+body {
+    font-family: "Open Sans", sans-serif;
+    font-size: 16px;
+    padding: 40px;
+}
+h1{
+  font-size: 3em;
+  font-weight: 700;
+  color: #0099FF;
+}
+a{
+  color: #333399;
+}
+a:hover{
+  color: #FF0099;
+}
+
+.states {
+    fill: #e3e3e3;
+    stroke: #333;
+    stroke-width: 0.5;
+    /* stroke: #fff; 
+    stroke-width:1px; */
+}
+.states:hover{
+  opacity: .6;
+}
+
+.legendLinear text {
+    font-size: 12px;
+}
+.d3-tip {
+  line-height: 1;
+  padding: 12px;
+  background: rgba(43,43,43, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+</style>
+<body>
+    <div id="dataviz_builtWithD3"></div>
+
+    <h1>Infant Mortality Rates by State</h1>
+
+    <p>Source: <a href="http://www.cdc.gov/nchs/deaths.htm">CDC</a>. This data is from 2011-2012.</p>
+
+    <div id="vis"></div>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/queue.v1.min.js"></script>
+<script src="d3-legend.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+
+<script>
+
+
+var width = 900;
+    height = 700;
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-5, 0])
+  .html(function(d) {
+	
+    var dataRow = countryById.get(d.properties.name);
+       if (dataRow) {
+        //    console.log(dataRow);
+           return dataRow.State + ": " +"<br />"
+           +"Under 5: "+ dataRow.Under5Years + "<br />" 
+           +"5-13: " + dataRow.r5to13Years + "<br />"
+           +"14-17: "+ dataRow.r14to17Years+ "<br />"
+           +"18-24: " + dataRow.r18to24Years+ "<br />"
+           +"25-44: "+ dataRow.r25to44Years+ "<br />"
+           +"45-64: "+ dataRow.r45to64Years +"<br />"
+           +"65 over: "+dataRow.r65YearsandOver;
+       } else {
+        //    console.log("no dataRow", d);
+           return d.properties.name + ": No data.";
+       }
+  })
+
+
+var svg = d3.select('#vis').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+svg.call(tip);
+
+var projection = d3.geo.albersUsa()
+    .scale(900) // mess with this if you want
+    .translate([width / 2, height / 2]);
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var colorScale = d3.scale.linear().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]).interpolate(d3.interpolateLab);
+
+var countryById = d3.map();
+
+// we use queue because we have 2 data files to load.
+queue()
+    .defer(d3.json, "USA.json")
+    .defer(d3.csv, "census.csv", typeAndSet) // process
+    .await(loaded);
+
+function typeAndSet(d) {
+	
+	d.Under5Years = +d.Under5Years;
+	d.r5to13Years = +d.r5to13Years;
+	d.r14to17Years = +d.r14to17Years;
+	d.r18to24Years = +d.r18to24Years;
+	d.r25to44Years = +d.r25to44Years;
+ 	d.r45to64Years = +d.r45to64Years;
+    d.r65YearsandOver = +d.r65YearsandOver;
+    d.areakm2 = +d.areakm2;
+	countryById.set(d.State,d)
+	// console.log(countryById);
+    return d;
+}
+
+function getColor(d) {
+    var dataRow = countryById.get(d.properties.name);
+    //console.log(d.)
+
+    if (dataRow) {
+        // console.log(dataRow);
+        return colorScale(dataRow);
+        // return "#ccc";
+    } else {
+        // console.log("no dataRow", d);
+        return "#ccc";
+    }
+}
+
+
+
+  
+
+
+// main data binding function
+function loaded(error, usa, census) {
+
+    // console.log(usa);
+    // console.log(census);
+   ;
+
+	colorScale.domain(d3.extent(census, function(d) {
+		return [d.Under5Years, d.r5to13Years, d.r14to17Years, d.r18to24Years, d.r45to64years, d.r65YearsandOver]; 
+	}));
+
+    var states = topojson.feature(usa, usa.objects.units).features;
+
+    var map = svg.selectAll('path.states')
+        .data(states)
+        .enter()
+        .append('path')
+        .attr('class', 'states')
+        .attr('d', path)
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+        .attr('fill', function(d,i) {
+			// console.log(d);
+            // console.log(d.properties.name);
+            return getColor(d);
+        })
+        .append("title");
+    map.append("path")
+    .attr("class","bubble")
+    .selectAll("circle")
+    .data(states)
+    .enter()
+    .append("circle")
+    .attr("transform", function(d){
+        return "translate("+path.centroid(d)+")"
+    })
+    .attr("r",1.5);
+
+    var linear = colorScale;
+
+    svg.append("g")
+      .attr("class", "legendLinear")
+      .attr("transform", "translate(20,20)");
+
+    var legendLinear = d3.legend.color()
+      .shapeWidth(30)
+      .orient('horizontal')
+      .scale(linear);
+
+    svg.select(".legendLinear")
+      .call(legendLinear);
+
+    var allGroup = ["yellow", "blue", "red", "green", "purple", "black"]
+
+    // Initialize the button
+    var dropdownButton = d3.select("#dataviz_builtWithD3")
+    .append('select')
+
+    // add the options to the button
+    dropdownButton // Add a button
+    .selectAll('myOptions') // Next 4 lines add 6 options = 6 colors
+    .data(allGroup)
+    .enter()
+    .append('option')
+    .text(function (d) { return d; }) // text showed in the menu
+    .attr("value", function (d) { return d; }) // corresponding value returned by the button
+
+    // Initialize a circle
+    var zeCircle = d3.select("#dataviz_builtWithD3")
+    .append("svg")
+    .append("circle")
+        .attr("cx", 100)
+        .attr("cy", 70)
+        .attr("stroke", "black")
+        .style("fill", "yellow")
+        .attr("r", 20)
+
+    // A function that update the color of the circle
+    function updateChart(mycolor) {
+    zeCircle
+        .transition()
+        .duration(1000)
+        .style("fill", mycolor)
+    
+    }
+
+    // When the button is changed, run the updateChart function
+    dropdownButton.on("change", function(d) {
+        // recover the option that has been chosen
+        var selectedOption = d3.select(this).property("value")
+        // run the updateChart function with this selected option
+        updateChart(selectedOption)
+    })
+
+
+}
+
+</script>
+</body>
+</html>

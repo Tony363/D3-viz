@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.bar {
+  fill: steelblue;
+}
+
+.axis path {
+  /*display: none;*/
+}
+
+
+</style>
+<body>
+
+<div id="stackedbars">
+  <h1>US population census</h1>
+  <svg id="census" width="1600" height="1300"></svg></div>
+</body>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+// this section sets up the svg, margin, width and height 
+var svg = d3.select("#census"),
+    margin = {top: 20, right: 180, bottom: 30, left: 40},
+    // sometimes width & height are defined separately here. Width and height are the overall
+    // dimensions that area alloted for the vix. The svg dimensions can be thought of as the 
+    // area within the axes. Therefore the margins are used to make room for the axis text and
+    // legend. That's why the margins are subtracted from the svg height and width here
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height") - margin.top - margin.bottom,
+    // this line moves the svg to the right and down from the origin (remember it's in the top
+    // left)
+    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+//scaleBand (https://github.com/d3/d3-scale#scaleBand) and rangeRound are used for categorical charts, like bar charts
+// rangeRound will take the number of categories to be displayed on the x-axis as input and 
+// calculate the space each should be given within the range, which in this case
+// is the width of the csv
+var x = d3.scaleBand()
+    .rangeRound([0, width])
+    // this is the padding between the bars
+    .padding(0.5)
+    // this is takes the four bars as a whole and locates them as a group to the right or
+    // left on the x axis. a value of 1 moves them all the way to the right. Default is 0.5
+    .align(.9);
+
+//  scaleLinear creates a continuous scale 
+var y = d3.scaleLinear()
+    .range([height, 0]);
+
+// this will be used to set the colors. The age categories will be passed to this scale
+// and each assigned on the the colors from schemeCategory20
+// to assign custom colors,  remove the schemeCategory20 and un-comment the range with your
+// own colors
+var z = d3.scaleOrdinal()
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+//(https://github.com/d3/d3-shape/blob/master/README.md#stack)
+// stack creates an array which consists of an array for each of the series (categories) in the data
+// each element in this array of arrays is a set of coordinates with the lower and upper bound for each 
+// data point. For stacked bar charts, this gives the lower and upper y values for each block
+// of color
+var stack = d3.stack();
+
+// this is where the data is loaded, given the name "data" and checked for errors
+d3.csv("census.csv", type, function(error, data) {
+  if (error) throw error;
+  console.log(data)
+
+
+
+// the domain is the input (domain= input, range = output)
+// the map function creates an array of the information, in this case the names of the 
+// ethnicities. this array will be used to create the x axis categories
+  x.domain(data.map(function(d) { return d.State; }));
+
+// this tells d3 that y values will range from 0 to the max total value, not sure
+// what .nice() does?
+  y.domain([0, d3.max(data, function(d) { return d.total; })]).nice();
+
+// this removes the first column from the data, which is the ethnicity name column because
+// that shouldn't have it's own color, but each of the other columns should
+  z.domain(data.columns.slice(1));
+
+// this is setting up the age series
+  g.selectAll(".serie")
+    //the keys for the stack are the columns minus the first column, which is removed
+    //using the "slice" method
+    .data(stack.keys(data.columns.slice(1))(data))
+    // each age series is given it's own g
+    .enter().append("g")
+      .attr("class", "serie")
+      // the keys are passed to the z domain to be assigned a color
+      .attr("fill", function(d) { return z(d.key); })
+    .selectAll("rect")
+    .data(function(d) { return d; })
+    .enter().append("rect")
+      // why is .data needed here? why not just d? maybe because it was sliced off earlier?
+      .attr("x", function(d) { return x(d.data.State); })
+      // from the slice method, d is a pair of coordinates, the upper and lower bounds of the 
+      // area to be displayed. This sets the upper y value
+      .attr("y", function(d) { return y(d[1]); })
+      // this calculates the height down from the starting point
+      .attr("height", function(d) {return y(d[0]) - y(d[1]); })
+      // .bandwidth is a method that calculates, what the width of each band should be. there is 
+      // a default padding between the bars. 
+      .attr("width", x.bandwidth());
+
+  // this places the x axis on the bottom and moves it so it's in the right place
+  g.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+  // this places the y axis on the left and moves it so it's in the right place
+  g.append("g")
+      .attr("class", "axis axis--y")
+      // this says to have 10 ticks on the y axis and give them the "k" thousands notation
+      .call(d3.axisLeft(y).ticks(10, "s"))
+      // this part formats the title of the y axis ("population")
+    .append("text")
+      
+      .attr("x", 2)// place it 2 pixels to the right of the y-axis
+      .attr("y", y(y.ticks(10).pop()))// make it level with the top number, this line appears to not be necessary
+      .attr("dy", "0.35")
+      .attr("text-anchor", "start")//sets where in relation to the y-axis the word starts. could be
+                                    // "middle" or "end" both of which would move it left
+      .attr("fill", "#000")
+      .text("Population");
+
+// making the legend
+  var legend = g.selectAll(".legend")
+  // the legend is made starting with the first column and working physically down from there. 
+  // the .reverse is needed to put the 71+ at the top of the legend like it is in the graphic
+  // this pulls the column names minus the first column
+    .data(data.columns.slice(1).reverse())
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; })
+      .style("font", "10px sans-serif");
+
+  // these are the actual rectangles it the legend
+  legend.append("rect")
+      .attr("x", width + 18) //placed 18 pixes from the right edge of the svg
+      .attr("width", 18)
+      .attr("height", 18)
+      .attr("fill", z);
+
+  legend.append("text")
+      .attr("x", width + 44)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .attr("text-anchor", "start")
+      .text(function(d) { return d; }); //d is just each column name
+});
+
+
+function type(d, i, columns) {
+  for (i = 1, t = 0; i < columns.length; ++i) 
+  // for each row, which is a d, cycle through the columns and add up all the elements
+  // in d, then assign that to t, which is a number from the +d[columns[i]]
+  t += d[columns[i]] = +d[columns[i]];
+  // creates a new column in the data titled "total"
+  d.total = t;
+  return d;
+//https://bl.ocks.org/63anp3ca/44203eae289a76afe4577a067a2999a4
+// this is where I referenced my d3 stacked barcharts from.
+// It's nicely commented too
+}
+</script>
+</body>
+</html>
