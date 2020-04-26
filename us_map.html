@@ -43,7 +43,7 @@ a:hover{
   color: #fff;
   border-radius: 2px;
 }
-.under5 {
+/* .under5 {
   fill: steelblue;
   fill-opacity: .6;
   stroke: #fff;
@@ -52,24 +52,29 @@ a:hover{
   fill:red;
   fill-opacity: .6;
   stroke: #fff;
-}
+} */
 
 </style>
 <body>
     <div id="circle"></div>
     <div id="dataviz_builtWithD3"></div>
+   
 
     <h1>US Population Census</h1>
 
     <p>Source: <a href="http://www.cdc.gov/nchs/deaths.htm">CDC</a>. This data is from 2011-2012.</p>
 
     <div id="vis"></div>
+    <div id="vis1"></div>
+    <div id="vis2"></div>
 
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="//d3js.org/queue.v1.min.js"></script>
 <script src="d3-legend.min.js"></script>
 <script src="//d3js.org/topojson.v1.min.js"></script>
+<script src="d3.legend.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script src="https://unpkg.com/textures@1.2.0/dist/textures.js"></script>
 
 <script>
 
@@ -130,12 +135,87 @@ var tip2 = d3.tip()
             return d.properties.name + ": No data.";
         }
     })
+var tip3 = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-5, 0])
+    .html(function(d) {
+
+    var dataRow = countryById.get(d.properties.name);
+        if (dataRow) {
+       
+            return dataRow.State + ": " +"<br />"   
+            +"14-17: "+ dataRow.r18to24Years+ "<br />"
+        } else {
+       
+            return d.properties.name + ": No data.";
+        }
+    })
+var tip4 = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-5, 0])
+    .html(function(d) {
+
+    var dataRow = countryById.get(d.properties.name);
+        if (dataRow) {
+       
+            return dataRow.State + ": " +"<br />"   
+            +"14-17: "+ dataRow.r25to44Years+ "<br />"
+        } else {
+       
+            return d.properties.name + ": No data.";
+        }
+    })
+var tip5 = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-5, 0])
+    .html(function(d) {
+
+    var dataRow = countryById.get(d.properties.name);
+        if (dataRow) {
+       
+            return dataRow.State + ": " +"<br />"   
+            +"14-17: "+ dataRow.r45to64Years+ "<br />"
+        } else {
+            return d.properties.name + ": No data.";
+        }
+    })
+var tip6 = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-5, 0])
+    .html(function(d) {
+
+    var dataRow = countryById.get(d.properties.name);
+        if (dataRow) {
+       
+            return dataRow.State + ": " +"<br />"   
+            +"14-17: "+ dataRow.r65YearsandOver+ "<br />"
+        } else {
+       
+            return d.properties.name + ": No data.";
+        }
+    })
+
+    const texture = textures
+  .lines()
+  .thicker();
 
 
 
 var svg = d3.select('#vis').append('svg')
     .attr('width', width)
     .attr('height', height);
+
+    svg.call(texture);
+
+var svg1 = d3.select('#vis').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+var svg2 = d3.select('#vis').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+
 
 svg.call(tip);
 
@@ -146,16 +226,14 @@ var projection = d3.geo.albersUsa()
 var path = d3.geo.path()
     .projection(projection);
 
-var colorScale = d3.scale.linear()
-                    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c"])
-                    .domain([100, 1000, 10000, 100000, 1000000, 1000000])
-                    .interpolate(d3.interpolateLab);
-
 var radiusScale = d3.scale
                     .linear()
-                    .range([1,50])
+                    .range([1,25])
                     .domain([0, 5000000]);
-
+var opacityScale = d3.scale
+                    .linear()
+                    .range([0.1,0.9])
+                    .domain([0,5000000]);
 
 var countryById = d3.map();
 
@@ -179,26 +257,26 @@ function typeAndSet(d) {
 	countryById.set(d.State,d)
 	// console.log(countryById);
     return d;
-}
+};
 
-function getColor(d) {
-    var dataRow = countryById.get(d.properties.name);
+// function getColor(d) {
+//     var dataRow = countryById.get(d.properties.name);
 
-    if (dataRow) {
-        // console.log(dataRow);
-        return colorScale(dataRow.Under5Years);
+//     if (dataRow) {
+//         // console.log(dataRow);
+//         return colorScale(dataRow.Under5Years);
 
-    } else {
-        // console.log("no dataRow", d);
-        return "#ccc";
-    }
-}
+//     } else {
+//         // console.log("no dataRow", d);
+//         return "#ccc";
+//     }
+// };
 
 function getRadius(d) {
     var dataRow = countryById.get(d.properties.name);
 
     if (dataRow) {
-       console.log(dataRow);
+    //    console.log(dataRow);
         return radiusScale(dataRow.Under5Years);
     }
     return 5;
@@ -208,7 +286,7 @@ function r5_13_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
 
     if (dataRow) {
-       console.log(dataRow);
+        // console.log(dataRow);
         return radiusScale(dataRow.r5to13Years);
     }
     return 5;
@@ -218,7 +296,7 @@ function r14_17_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
 
     if (dataRow) {
-       console.log(dataRow);
+        // console.log(dataRow);
         return radiusScale(dataRow.r14to17Years);
     }
     return 5;
@@ -228,7 +306,7 @@ function r18_24_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
 
     if (dataRow) {
-       console.log(dataRow);
+    //    console.log(dataRow);
         return radiusScale(dataRow.r18to24Years);
     }
     return 5;
@@ -238,7 +316,7 @@ function r25_44_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
 
     if (dataRow) {
-       console.log(dataRow);
+        // console.log(dataRow);
         return radiusScale(dataRow.r25to44Years);
     }
     return 5;
@@ -248,12 +326,76 @@ function r45_64_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
 
     if (dataRow) {
-       console.log(dataRow);
+        // console.log(dataRow);
         return radiusScale(dataRow.r45to64Years);
     }
     return 5;
     };
 
+function Over65_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+
+    if (dataRow) {
+        // console.log(dataRow);
+        return radiusScale(dataRow.r65YearsandOver);
+    }
+    return 5;
+    };
+
+function opacity1(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (dataRow){
+        return opacityScale(dataRow.Under5Years)
+    }
+    return 0;
+}
+function opacity2(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (dataRow){
+        return opacityScale(dataRow.r5to13Years)
+    }
+    return 0;
+};
+
+function opacity3(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (dataRow){
+        return opacityScale(dataRow.r14to17Years)
+    }
+    return 0;
+};
+
+function opacity4(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (dataRow){
+        return opacityScale(dataRow.r18to24Years)
+    }
+    return 0;
+};
+
+function opacity5(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (dataRow){
+        return opacityScale(dataRow.r25to44Years)
+    }
+    return 0;
+};
+
+function opacity6(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (dataRow){
+        return opacityScale(dataRow.r45to64Years)
+    }
+    return 0;
+};
+
+function opacity7(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (dataRow){
+        return opacityScale(dataRow.r65YearsandOver)
+    }
+    return 0;
+};
 
 
   
@@ -266,9 +408,9 @@ function loaded(error, usa,coor, census) {
     // console.log(census);
     // console.log(coor);
 
-	colorScale.domain(d3.extent(census, function(d) {
-		return [d.Under5Years, d.r5to13Years, d.r14to17Years, d.r18to24Years, d.r45to64years, d.r65YearsandOver]; 
-	}));
+	// colorScale.domain(d3.extent(census, function(d) {
+	// 	return [d.Under5Years, d.r5to13Years, d.r14to17Years, d.r18to24Years, d.r45to64years, d.r65YearsandOver]; 
+	// }));
 
     var states = topojson.feature(usa, usa.objects.units).features;
     
@@ -280,15 +422,57 @@ function loaded(error, usa,coor, census) {
         .append('path')
         .attr('class', 'states')
         .attr('d', path)
-        .on('mouseover', tip.show)
-        .on('mouseout', tip.hide)
-        .attr('fill', function(d,i) {
-			// console.log(d);
-            // console.log(d.properties.name);
-            return getColor(d);
-        });
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+        // .attr('fill', function(d,i) {
+		// 	// console.log(d);
+        //     // console.log(d.properties.name);
+        //     return getColor(d);
+        // });
+    
+    var colormap1 = svg1.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append('path')
+        .attr('class', 'states')
+        .attr('d', path)
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+        // .attr('fill', function(d,i) {
+		// 	// console.log(d);
+        //     // console.log(d.properties.name);
+        //     return getColor(d);
+        // });
+    
+    var colormap2 = svg2.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append('path')
+        .attr('class', 'states')
+        .attr('d', path)
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+        // .attr('fill', function(d,i) {
+		// 	// console.log(d);
+        //     // console.log(d.properties.name);
+        //     return getColor(d);
+        // });
+    
+    var linesonmap = svg1.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append("path")
+        .attr("class","states")
+        .attr("d",path)
+        .style('fill', texture.url());
+
+
 
     var under_5_bubbles = svg.append('g')
+
         .attr('class', 'bubble')
         .selectAll("circle")
         .data(states)
@@ -297,10 +481,10 @@ function loaded(error, usa,coor, census) {
         .attr("r", function(d, i) {
             return getRadius(d);
         })
-        .on('mouseover', tip1.show)
-        .on('mouseout', tip1.hide)
-        .attr("fill","red")
-        .style("opacity",0.3);
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill","#E58606")
+        .style("opacity",opacity1);
 
     var r5to13Years_bubles = svg.append('g')
         .attr('class','bubble')
@@ -314,10 +498,10 @@ function loaded(error, usa,coor, census) {
         .attr("r",function(d,i){
             return r5_13_Radius(d)
         })
-        .on('mouseover', tip2.show)
-        .on('mouseout', tip2.hide)
-        .attr("fill","blue")
-        .style("opacity",0.3);
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill","#5D69B1")
+        .style("opacity",opacity2);
 
     var r14to17Years_bubbles = svg.append('g')
         .attr('class','bubble')
@@ -331,8 +515,8 @@ function loaded(error, usa,coor, census) {
         .attr("r",function(d,i){
             return r14_17_Radius(d)
         })
-        .attr("fill","green")
-        .style("opacity",0.3);
+        .attr("fill","#52BCA3")
+        .style("opacity",opacity3);
     
     var r18to24Years_bubbles = svg.append('g')
         .attr('class','bubble')
@@ -346,8 +530,10 @@ function loaded(error, usa,coor, census) {
         .attr("r",function(d,i){
             return r18_24_Radius(d)
         })
-        .attr("fill","yellow")
-        .style("opacity",0.3);
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill","#99C945")
+        .style("opacity",opacity4);
     
     var r25to44Years_bubbles = svg.append('g')
         .attr('class','bubble')
@@ -361,10 +547,12 @@ function loaded(error, usa,coor, census) {
         .attr("r",function(d,i){
             return r25_44_Radius(d)
         })
-        .attr("fill","brown")
-        .style("opacity",0.3);
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill","#CC61B0")
+        .style("opacity",opacity5);
     
-    var r45to65Years_bubbles = svg.append('g')
+    var r45to64Years_bubbles = svg.append('g')
         .attr('class','bubble')
         .selectAll('circle')
         .data(states)
@@ -376,72 +564,59 @@ function loaded(error, usa,coor, census) {
         .attr("r",function(d,i){
             return r45_64_Radius(d)
         })
-        .attr("fill","black")
-        .style("opacity",0.3);
- 
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill","#24796C")
+        .style("opacity",opacity6);
     
-     
+    var Over65_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return Over65_Radius(d)
+        })
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill","#DAA51B")
+        .style("opacity",opacity7);
+
         
+    svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 6).style("fill", "#E58606")
+    svg.append("circle").attr("cx",200).attr("cy",160).attr("r", 6).style("fill", "#5D69B1")
+    svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 6).style("fill", "#52BCA3")
+    svg.append("circle").attr("cx",200).attr("cy",160).attr("r", 6).style("fill", "#99C945")
+    svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 6).style("fill", "#CC61B0")
+    svg.append("circle").attr("cx",200).attr("cy",160).attr("r", 6).style("fill", "#24796C")
+    svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 6).style("fill", "#DAA51B")
+
+    svg.append("text").attr("x", 220).attr("y", 130).text("variable A").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 220).attr("y", 160).text("variable B").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 220).attr("y", 130).text("variable A").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 220).attr("y", 160).text("variable B").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 220).attr("y", 130).text("variable A").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 220).attr("y", 160).text("variable B").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 220).attr("y", 130).text("variable A").style("font-size", "15px").attr("alignment-baseline","middle")
+
+    // svg.append("pointer-evg")
+    //   .attr("class", "legendLinear")
+    //   .attr("transform", "translate(20,20)");
 
 
+    // var legend = d3.legend.color()
+    //     .shapeWidth(30)
+    //     .useClass(true)
+    //     .title("A really really really really really long title")
+    //     .titleWidth(100)
+    //     .scale(linear);
 
-    var linear = colorScale;
-
-    svg.append("g")
-      .attr("class", "legendLinear")
-      .attr("transform", "translate(20,20)");
-
-    var legendLinear = d3.legend.color()
-      .shapeWidth(30)
-      .orient('horizontal')
-      .scale(linear);
-
-    svg.select(".legendLinear")
-      .call(legendLinear);
-
-    var allGroup = ["yellow", "blue", "red", "green", "purple", "black"]
-
-    // Initialize the button
-    var dropdownButton = d3.select("#dataviz_builtWithD3")
-    // var dropdownButton = d3.select("#vis")
-    .append('select')
-
-    // add the options to the button
-    dropdownButton // Add a button
-    .selectAll('myOptions') // Next 4 lines add 6 options = 6 colors
-    .data(allGroup)
-    .enter()
-    .append('option')
-    .text(function (d) { return d; }) // text showed in the menu
-    .attr("value", function (d) { return d; }) // corresponding value returned by the button
-
-    // Initialize a circle
-    var zeCircle = d3.select("#dataviz_builtWithD3")
-    .append("svg")
-    .append("circle")
-        .attr("cx", 100)
-        .attr("cy", 70)
-        .attr("stroke", "black")
-        .style("fill", "yellow")
-        .attr("r", 20)
-
-    // A function that update the color of the circle
-    function updateChart(mycolor) {
-    zeCircle
-        .transition()
-        .duration(1000)
-        .style("fill", mycolor)
-    
-    }
-
-    // When the button is changed, run the updateChart function
-    dropdownButton.on("change", function(d) {
-        // recover the option that has been chosen
-        var selectedOption = d3.select(this).property("value")
-        // run the updateChart function with this selected option
-        updateChart(selectedOption)
-    })
-
+    // svg.select(".legendLinear")
+    //   .call(legendLinear);
 
 }
 
