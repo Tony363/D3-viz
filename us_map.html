@@ -195,10 +195,17 @@ var tip6 = d3.tip()
         }
     })
 
-    const texture = textures
-  .lines()
-  .thicker();
+const texture = textures.lines().thicker().orientation("vertical");
+const texture1 = textures.lines().orientation("horizontal");
 
+// var t1 = textures.lines().stroke("darkorange").orientation("3/8").lighter().size(16).strokeWidth(1);
+// svg.call(t1);
+// var t2 = textures.lines().stroke("darkorange").orientation("7/8").lighter().size(16).strokeWidth(1);
+// svg.call(t2);
+// var t3 = textures.lines().stroke("darkorange").orientation("4/8").lighter().size(8).strokeWidth(1);
+// svg.call(t3);
+// var t4 = textures.lines().stroke("darkorange").orientation("0/8").lighter().size(8).strokeWidth(1);
+// svg.call(t4);
 
 
 var svg = d3.select('#vis').append('svg')
@@ -207,11 +214,11 @@ var svg = d3.select('#vis').append('svg')
 
     svg.call(texture);
 
-var svg1 = d3.select('#vis').append('svg')
+var svg1 = d3.select('#vis1').append('svg')
     .attr('width', width)
     .attr('height', height);
 
-var svg2 = d3.select('#vis').append('svg')
+var svg2 = d3.select('#vis2').append('svg')
     .attr('width', width)
     .attr('height', height);
 
@@ -586,38 +593,26 @@ function loaded(error, usa,coor, census) {
         .attr("fill","#DAA51B")
         .style("opacity",opacity7);
 
-        
-    svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 6).style("fill", "#E58606")
-    svg.append("circle").attr("cx",200).attr("cy",160).attr("r", 6).style("fill", "#5D69B1")
-    svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 6).style("fill", "#52BCA3")
-    svg.append("circle").attr("cx",200).attr("cy",160).attr("r", 6).style("fill", "#99C945")
-    svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 6).style("fill", "#CC61B0")
-    svg.append("circle").attr("cx",200).attr("cy",160).attr("r", 6).style("fill", "#24796C")
-    svg.append("circle").attr("cx",200).attr("cy",130).attr("r", 6).style("fill", "#DAA51B")
+        // cs cy set location
+    svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#E58606")
+    svg.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#5D69B1")
+    svg.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#52BCA3")
+    svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#99C945")
+    svg.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#CC61B0")
+    svg.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#24796C")
+    svg.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#DAA51B")
 
-    svg.append("text").attr("x", 220).attr("y", 130).text("variable A").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 220).attr("y", 160).text("variable B").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 220).attr("y", 130).text("variable A").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 220).attr("y", 160).text("variable B").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 220).attr("y", 130).text("variable A").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 220).attr("y", 160).text("variable B").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 220).attr("y", 130).text("variable A").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 60).attr("y", 20).text("5 and under").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 60).attr("y", 35).text("5 - 13 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 60).attr("y", 50).text("14 - 17 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 60).attr("y", 65).text("18 - 24 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 60).attr("y", 80).text("25 - 44 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 60).attr("y", 95).text("45 - 65 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 60).attr("y", 110).text("Age 64 and over").style("font-size", "15px").attr("alignment-baseline","middle")
 
-    // svg.append("pointer-evg")
-    //   .attr("class", "legendLinear")
-    //   .attr("transform", "translate(20,20)");
-
-
-    // var legend = d3.legend.color()
-    //     .shapeWidth(30)
-    //     .useClass(true)
-    //     .title("A really really really really really long title")
-    //     .titleWidth(100)
-    //     .scale(linear);
-
-    // svg.select(".legendLinear")
-    //   .call(legendLinear);
-
+    svg1.append("rect").attr("x",10).attr("y",10).attr("width",50).attr("height",10).attr("fill",texture.url())
+    // svg1.append("rect").attr("x",10).attr("y",30).attr("width",50).attr("height",10).attr("fill",texture1.url())
+    svg1.append("rect").attr("x",10).attr("y",30).attr("width",50).attr("height",10).attr("fill",texture1)
 }
 
 </script>
