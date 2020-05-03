@@ -534,8 +534,9 @@ function loaded(error, usa,coor, census) {
         .attr("d",path)
         .style('fill', function(d,i){
             var dataRow = countryById.get(d.properties.name)
-            if (dataRow){
-                var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver] 
+             
+            if (!A_P){
+                var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
                 var sum_array = array.reduce(function(a,b){
                     return a+b;
                 },0);
@@ -552,7 +553,21 @@ function loaded(error, usa,coor, census) {
                     // console.log(sum_array);
                     return texture3.url();
                 };
-            };
+            }else if(A_P){
+                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 10000){
+                    // console.log(sum_array);
+                    return texture.url();
+                } else if (dataRow.areakm2 > 10000 && dataRow.areakm2<= 100000 ) {
+                    // console.log(sum_array);
+                    return texture1.url();
+                } else if (dataRow.areakm2 > 100000 && dataRow.areakm2 <= 1000000){
+                    // console.log(sum_array);
+                    return texture2.url();
+                } else {
+                    // console.log(sum_array);
+                    return texture3.url();
+                };
+            }
             return "nothing";
         })
         .on('mouseover', (d) => { tip.show(d)})
@@ -585,7 +600,23 @@ function loaded(error, usa,coor, census) {
                                     // console.log(sum_array);
                                     return text3.url();
                                 };
-                            };
+                            }else if (A_P){
+                                
+                                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 10000){
+                                    // console.log(sum_array);
+                                    return text.url();
+                                } else if (dataRow.areakm2 > 10000 && dataRow.areakm2 <= 100000 ) {
+                                    // console.log(sum_array);
+                                    return text1.url();
+                                } else if (dataRow.areakm2 > 100000 && dataRow.areakm2 <= 1000000){
+                                    // console.log(sum_array);
+                                    return text2.url();
+                                } else {
+                                    // console.log(sum_array);
+                                    return text3.url();
+                                };
+
+                            }
                             return "nothing";
                         })
                         .on('mouseover', (d) => { tip.show(d)})
@@ -736,6 +767,15 @@ function loaded(error, usa,coor, census) {
     svg1.append("text").attr("x", 60).attr("y", 55).text("text b").style("font-size", "15px").attr("alignment-baseline","middle")
     svg1.append("text").attr("x", 60).attr("y", 75).text("text c").style("font-size", "15px").attr("alignment-baseline","middle")
     
+    svg2.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",20).attr("fill",text.url())
+    svg2.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",20).attr("fill",text1.url())
+    svg2.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",20).attr("fill",text2.url())
+    svg2.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",20).attr("fill",text3.url())
+
+    svg2.append("text").attr("x", 60).attr("y", 15).text("text").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg2.append("text").attr("x", 60).attr("y", 35).text("text a").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg2.append("text").attr("x", 60).attr("y", 55).text("text b").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg2.append("text").attr("x", 60).attr("y", 75).text("text c").style("font-size", "15px").attr("alignment-baseline","middle")
 
 }
 
