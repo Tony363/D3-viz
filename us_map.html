@@ -237,6 +237,8 @@ const text3 = textures.circles().heavier();
 
 
 
+
+
 var svg = d3.select('#vis').append('svg')
     .attr('width', width)
     .attr('height', height);
@@ -301,6 +303,11 @@ var opacityScale = d3.scale
                     .range([0.1,0.9])
                     .domain([0,5000000]);
 
+var AreaOpacityScale = d3.scale
+                        .linear()
+                        .range([0,1])
+                        .domain([0,1000000])
+
 var colorScale = d3.scale
                     .linear()
                     .range(["#E58606","#5D69B1","#52BCA3","#99C945","#24796C","#DAA51B"])
@@ -309,6 +316,7 @@ var areaColor = d3.scale
                     .linear()
                     .range(["#E58606","#5D69B1","#52BCA3","#99C945","#24796C","#DAA51B"])
                     .domain([0,200000])
+
 
 var census_choice = ['Population','Area']
 
@@ -424,7 +432,7 @@ function opacity1(d){
     if (!A_P){
         return opacityScale(dataRow.Under5Years)
     } else if (A_P){
-        return opacityScale(dataRow.areakm2)
+        return AreaOpacityScale(dataRow.areakm2)
     }
     return 0;
 }
@@ -485,8 +493,52 @@ function opacity7(d){
     return 0;
 };
 
+function AreaOpacity(shapes,states){
+    // console.log(shapes[1]);
+    var state_names = states.map(function(d){
+        return d.properties.name
+    });
+    // console.log(state_names.length)
+    for (var index = 0;index < state_names.length;++index){
+        // console.log(state_names[index])
+        var dataRow = countryById.get(state_names[index]);
+        if (!A_P){
+            var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+            var sum_array = array.reduce(function(a,b){
+                    return a+b;
+                },0);
+            if (sum_array >= 1000 && sum_array <= 10000){
+                // console.log(sum_array);
+                return texture.url();
+            } else if (sum_array > 10000 && sum_array <= 100000 ) {
+                // console.log(sum_array);
+                return texture1.url();
+            } else if (sum_array > 100000 && sum_array <= 1000000){
+                // console.log(sum_array);
+                return texture2.url();
+            } else {
+                // console.log(sum_array);
+                return texture3.url();
+            };
+            }else if(A_P){
+                // console.log(dataRow.areakm2)
+                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 10000){
+                    // console.log("yahha")
+                    shapes[0].style("opacity",1);
+                } else if (dataRow.areakm2 > 10000 && dataRow.areakm2 <= 100000 ){
+                    // console.log("whatt")
+                    shapes[1].style("opacity",1);
+                } else if (dataRow.areakm2 > 100000 && dataRow.areakm2 <= 1000000){
+                    // console.log("why")
+                    shapes[2].style("opacity",1);
+                } else {
+                    // console.log("WTF");
+                    shapes[3].style("opacity",1);
+                };
+            }
+    }   
+}
 
-  
 
 
 // main data binding function
@@ -554,8 +606,80 @@ function loaded(error, usa,coor, census) {
                             .attr('class','states')
                             .attr('d',path)
                             .on('mouseover', (d) => { tip.show(d)})
-                            .on('mouseout', (d) => { tip.hide(d);});
+                            .on('mouseout', (d) => { tip.hide(d);})
 
+        
+        var colormap3 = svg5.append("g")
+                            .selectAll("states")
+                            .data(states)
+                            .enter()
+                            .append('path')
+                            .attr('class','states')
+                            .attr('d',path)
+                            .on('mouseover', (d) => { tip.show(d)})
+                            .on('mouseout', (d) => { tip.hide(d);})
+                            .style("fill","black")
+                            .style("opacity",opacity1)
+        
+        var square = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("rect")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                       
+                        .attr("width", 10)
+                        .attr("height", 10)
+                        .style("opacity",0);
+
+        var rectangle = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("rect")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                       
+                        .attr("width", 10)
+                        .attr("height", 20)
+                        .style("opacity",0);
+        
+        var ellipse = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("ellipse")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        
+                        .attr("rx", 25)
+                        .attr("ry", 10)
+                        .style("opacity",0);    
+                      
+
+        var circle = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("circle")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                       
+                        .attr("r",20)
+                        .style("opacity",0);
+
+        var triangles = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("path")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .attr("class", function(d,i) { return "triangles triangle-" + i; })
+                        .attr("d", "M 0 " + (-height/30) + " L " + (-width/30) + " " + (height/30) + "L " + (width/30) + " " + (height/30) + " Z")
+                        .style("opacity",0);
+
+        var shapes = [triangles,circle,rectangle,square]
+        
+        // shapes[0].style("opacity",1)
+        AreaOpacity(shapes,states);
+      
     }
        
     
