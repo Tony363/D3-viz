@@ -290,6 +290,12 @@ var radiusScale = d3.scale
                     .linear()
                     .range([1,25])
                     .domain([0, 5000000]);
+
+var areaRadiusScale = d3.scale
+                        .linear()
+                        .range([1,25])
+                        .domain([0,1000000])
+
 var opacityScale = d3.scale
                     .linear()
                     .range([0.1,0.9])
@@ -299,6 +305,10 @@ var colorScale = d3.scale
                     .linear()
                     .range(["#E58606","#5D69B1","#52BCA3","#99C945","#24796C","#DAA51B"])
                     .domain([0,5000000])
+var areaColor = d3.scale
+                    .linear()
+                    .range(["#E58606","#5D69B1","#52BCA3","#99C945","#24796C","#DAA51B"])
+                    .domain([0,200000])
 
 var census_choice = ['Population','Area']
 
@@ -327,21 +337,22 @@ function typeAndSet(d) {
 	// console.log(countryById);
     return d;
 };
-// function getColor(d){
-//     var dataRow = countryById.get(d.properties.name);
-//     if (dataRow & A_P) {
-//         return colorScale(dataRow.areakm2)
-//     }
-//     return 'no data'
-// };
+function getColor(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (A_P) {
+        
+        return areaColor(dataRow.areakm2)
+    } 
+    return 'no data'
+};
 function getRadius(d) {
     var dataRow = countryById.get(d.properties.name);
-console.log(dataRow);
+// console.log(dataRow);
     if (!A_P) {
        
         return radiusScale(dataRow.Under5Years);
     } else if (A_P) {
-        return radiusScale(dataRow.areakm2)
+        return areaRadiusScale(dataRow.areakm2)
     }
     return 5;
     };
@@ -349,7 +360,7 @@ console.log(dataRow);
 
 function r5_13_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
-console.log(dataRow);
+// console.log(dataRow);
     if (!A_P) {
        
         return radiusScale(dataRow.r5to13Years);
@@ -359,7 +370,7 @@ console.log(dataRow);
 
 function r14_17_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
-console.log(dataRow);
+// console.log(dataRow);
     if (!A_P) {
     //    console.log(dataRow);
         return radiusScale(dataRow.r14to17Years);
@@ -369,7 +380,7 @@ console.log(dataRow);
 
 function r18_24_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
-console.log(dataRow);
+// console.log(dataRow);
     if (!A_P ) {
     //    console.log(dataRow);
         return radiusScale(dataRow.r18to24Years);
@@ -379,7 +390,7 @@ console.log(dataRow);
 
 function r25_44_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
-console.log(dataRow);
+// console.log(dataRow);
     if (!A_P) {
         // conso!A_PdataRow);
         return radiusScale(dataRow.r25to44Years);
@@ -389,7 +400,7 @@ console.log(dataRow);
 
 function r45_64_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
-console.log(dataRow);
+// console.log(dataRow);
     if (!A_P) {
     //    console.log(dataRow);
         return radiusScale(dataRow.r45to64Years);
@@ -399,7 +410,7 @@ console.log(dataRow);
 
 function Over65_Radius(d) {
     var dataRow = countryById.get(d.properties.name);
-console.log(dataRow);
+// console.log(dataRow);
     if (!A_P ) {
     //    console.log(dataRow);
         return radiusScale(dataRow.r45to64Years);
@@ -422,7 +433,7 @@ function opacity1(d){
 function opacity2(d){
 
     var dataRow = countryById.get(d.properties.name);
-    console.log(dataRow);
+    // console.log(dataRow);
     if (!A_P){
         return opacityScale(dataRow.r5to13Years)
     } 
@@ -431,7 +442,7 @@ function opacity2(d){
 
 function opacity3(d){
     var dataRow = countryById.get(d.properties.name);
-    console.log(dataRow);
+    // console.log(dataRow);
     if (!A_P){
         return opacityScale(dataRow.r14to17Years)
     } 
@@ -440,7 +451,7 @@ function opacity3(d){
 
 function opacity4(d){
     var dataRow = countryById.get(d.properties.name);
-    console.log(dataRow);
+    // // console.log(dataRow);
     if (!A_P){
         return opacityScale(dataRow.r18to24Years)
     } 
@@ -449,7 +460,7 @@ function opacity4(d){
 
 function opacity5(d){
     var dataRow = countryById.get(d.properties.name);
-    console.log(dataRow);
+    // console.log(dataRow);
     if (!A_P){
         return opacityScale(dataRow.r25to44Years)
     } 
@@ -458,7 +469,7 @@ function opacity5(d){
 
 function opacity6(d){
     var dataRow = countryById.get(d.properties.name);
-    console.log(dataRow);
+    // console.log(dataRow);
     if (!A_P){
         return opacityScale(dataRow.r45to64Years)
     }
@@ -467,7 +478,7 @@ function opacity6(d){
 
 function opacity7(d){
     var dataRow = countryById.get(d.properties.name);
-    console.log(dataRow);
+    // console.log(dataRow);
     if (!A_P){
         return opacityScale(dataRow.r65YearsandOver);
     }
@@ -522,7 +533,30 @@ function loaded(error, usa,coor, census) {
         .attr('d', path)
         .on('mouseover', (d) => { tip.show(d)})
         .on('mouseout', (d) => { tip.hide(d);});
-  
+    
+    if (A_P){
+        var colormap3 = svg3.append("g")
+                            .selectAll("states")
+                            .data(states)
+                            .enter()
+                            .append('path')
+                            .attr('class','states')
+                            .attr('d',path)
+                            .on('mouseover', (d) => { tip.show(d)})
+                            .on('mouseout', (d) => { tip.hide(d);})
+                            .style("fill",getColor)
+
+        var colormap3 = svg4.append("g")
+                            .selectAll("states")
+                            .data(states)
+                            .enter()
+                            .append('path')
+                            .attr('class','states')
+                            .attr('d',path)
+                            .on('mouseover', (d) => { tip.show(d)})
+                            .on('mouseout', (d) => { tip.hide(d);});
+
+    }
        
     
     var linesonmap = svg1.append("g")
@@ -715,7 +749,7 @@ function loaded(error, usa,coor, census) {
             return "translate(" + path.centroid(d) + ")";
         })
         .attr("r",function(d,i){
-            console.log(d,'!!!!');
+            // console.log(d,'!!!!');
             return r45_64_Radius(d)
         })
         .on('mouseover', (d) => { tip.show(d)})
@@ -741,21 +775,6 @@ function loaded(error, usa,coor, census) {
         .style("opacity",opacity7);
 
         // cs cy set location
-    svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#E58606")
-    svg.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#5D69B1")
-    svg.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#52BCA3")
-    svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#99C945")
-    svg.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#CC61B0")
-    svg.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#24796C")
-    svg.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#DAA51B")
-
-    svg.append("text").attr("x", 60).attr("y", 20).text("5 and under").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 60).attr("y", 35).text("5 - 13 Age").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 60).attr("y", 50).text("14 - 17 Age").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 60).attr("y", 65).text("18 - 24 Age").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 60).attr("y", 80).text("25 - 44 Age").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 60).attr("y", 95).text("45 - 65 Age").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg.append("text").attr("x", 60).attr("y", 110).text("Age 64 and over").style("font-size", "15px").attr("alignment-baseline","middle")
 
     svg1.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",15).attr("fill",texture.url())
     svg1.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",15).attr("fill",texture1.url())
@@ -777,6 +796,52 @@ function loaded(error, usa,coor, census) {
     svg2.append("text").attr("x", 60).attr("y", 55).text("text b").style("font-size", "15px").attr("alignment-baseline","middle")
     svg2.append("text").attr("x", 60).attr("y", 75).text("text c").style("font-size", "15px").attr("alignment-baseline","middle")
 
+    if (!A_P){
+        svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#E58606")
+        svg.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#5D69B1")
+        svg.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#52BCA3")
+        svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#99C945")
+        svg.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#CC61B0")
+        svg.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#24796C")
+        svg.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#DAA51B")
+
+        svg.append("text").attr("x", 60).attr("y", 20).text("5 and under").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 35).text("5 - 13 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 50).text("14 - 17 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 65).text("18 - 24 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 80).text("25 - 44 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 95).text("45 - 65 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 110).text("Age 64 and over").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        
+
+    } else if(A_P) {
+        console.log("TO DO");
+        svg.append("circle").attr("cx",50).attr("cy",5).attr("r", 3).style("fill", "#E58606")
+        svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 25).style("fill", "#E58606")
+
+        svg.append("text").attr("x", 60).attr("y", 20).text("1000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 35).text("1000000 k^2").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg3.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#E58606")
+        svg3.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#5D69B1")
+        svg3.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#52BCA3")
+        svg3.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#99C945")
+        svg3.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#CC61B0")
+        svg3.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#24796C")
+        svg3.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#DAA51B")
+        
+        svg3.append("text").attr("x", 60).attr("y", 20).text("166666 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 35).text("333333 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 50).text("499999 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 65).text("666666 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 80).text("833331 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 95).text("999999 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 110).text("1000000 over km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+    };
+    
+
+    
 }
 
 </script>
