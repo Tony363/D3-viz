@@ -525,18 +525,76 @@ function AreaOpacity(shapes,states){
                 if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 10000){
                     // console.log("yahha")
                     shapes[0].style("opacity",1);
+                    shapes[1].style("opacity",0);
+                    shapes[2].style("opacity",0);
+                    shapes[3].style("opacity",0);
                 } else if (dataRow.areakm2 > 10000 && dataRow.areakm2 <= 100000 ){
                     // console.log("whatt")
+                    shapes[0].style("opacity",0);
                     shapes[1].style("opacity",1);
+                    shapes[2].style("opacity",0);
+                    shapes[3].style("opacity",0);
                 } else if (dataRow.areakm2 > 100000 && dataRow.areakm2 <= 1000000){
                     // console.log("why")
+                    shapes[0].style("opacity",0);
+                    shapes[1].style("opacity",0);
                     shapes[2].style("opacity",1);
+                    shapes[3].style("opacity",0);
                 } else {
                     // console.log("WTF");
+                    shapes[0].style("opacity",0);
+                    shapes[1].style("opacity",0);
+                    shapes[2].style("opacity",0);
                     shapes[3].style("opacity",1);
+
                 };
             }
     }   
+}
+
+function triagleOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+   
+    if (dataRow.areakm2 > 1000 && dataRow.areakm2 < 10000){
+        return 1
+    }
+    return 0
+}
+
+function squareOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+    
+    if (dataRow.areakm2 > 10000 && dataRow.areakm2 < 100000){
+        return 1
+    }
+    return 0
+}
+
+function rectangleOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+   
+    if (dataRow.areakm2 > 100000 && dataRow.areakm2 < 1000000){
+        return 1
+    }
+    return 0
+}
+
+function circleOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+   
+    if (dataRow.areakm2 > 1000000 && dataRow.areakm2 < 5000000){
+        return 1
+    }
+    return 0
+}
+
+function ellipseOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+    console.log(dataRow.areakm2)
+    if (dataRow.areakm2 > 5000000){
+        return 1
+    }
+    return 0
 }
 
 
@@ -630,7 +688,7 @@ function loaded(error, usa,coor, census) {
                        
                         .attr("width", 10)
                         .attr("height", 10)
-                        .style("opacity",0);
+                        .style("opacity",squareOpacity);
 
         var rectangle = svg4.append("g")
                         .selectAll("states")
@@ -641,7 +699,7 @@ function loaded(error, usa,coor, census) {
                        
                         .attr("width", 10)
                         .attr("height", 20)
-                        .style("opacity",0);
+                        .style("opacity",rectangleOpacity);
         
         var ellipse = svg4.append("g")
                         .selectAll("states")
@@ -652,7 +710,7 @@ function loaded(error, usa,coor, census) {
                         
                         .attr("rx", 25)
                         .attr("ry", 10)
-                        .style("opacity",0);    
+                        .style("opacity",ellipseOpacity);    
                       
 
         var circle = svg4.append("g")
@@ -663,7 +721,7 @@ function loaded(error, usa,coor, census) {
                         .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
                        
                         .attr("r",20)
-                        .style("opacity",0);
+                        .style("opacity",circleOpacity);
 
         var triangles = svg4.append("g")
                         .selectAll("states")
@@ -673,12 +731,11 @@ function loaded(error, usa,coor, census) {
                         .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
                         .attr("class", function(d,i) { return "triangles triangle-" + i; })
                         .attr("d", "M 0 " + (-height/30) + " L " + (-width/30) + " " + (height/30) + "L " + (width/30) + " " + (height/30) + " Z")
-                        .style("opacity",0);
+                        .style("opacity",triagleOpacity);
 
         var shapes = [triangles,circle,rectangle,square]
-        
-        // shapes[0].style("opacity",1)
-        AreaOpacity(shapes,states);
+    
+        // AreaOpacity(shapes,states);
       
     }
        
