@@ -270,12 +270,16 @@ var areaRadiusScale = d3.scale
 var opacityScale = d3.scale
                     .linear()
                     .range([0,1])
-                    .domain([0,1000000]);
+                    .domain([0,100000]);
 
 var AreaOpacityScale = d3.scale
                         .linear()
-                        .range([0,1])
-                        .domain([0,1000000])
+                        .range([0.1,.9])
+                        .domain([0,1200000])
+var AreaSizeScale = d3.scale
+                        .linear()
+                        .range([0.1,0.9])
+                        .domain([0,1500000])
 
 var colorScale = d3.scale
                     .linear()
@@ -459,7 +463,7 @@ function opacity1(d){
     if (!A_P){
         return opacityScale(dataRow.Under5Years)
     } else if (A_P){
-        return AreaOpacityScale(dataRow.areakm2)
+        return opacityScale(dataRow.areakm2)
     }
     return 0;
 }
@@ -707,7 +711,10 @@ function loaded(error, usa,coor, census) {
                             .on('mouseover', (d) => { tip.show(d)})
                             .on('mouseout', (d) => { tip.hide(d);})
                             .style("fill","black")
-                            .style("opacity",opacity1)
+                            .style("opacity",function(d){
+                                var dataRow = countryById.get(d.properties.name);
+                                return AreaSizeScale(dataRow.areakm2)
+                            });
         
         var square = svg4.append("g")
                         .selectAll("states")
@@ -1033,7 +1040,12 @@ function loaded(error, usa,coor, census) {
 
         // cs cy set location
 
-
+    var triangle_legend = svg3.append("g")
+        .attr("cx",300)
+        .attr("cy",15)
+        .attr("class", function(d,i) { return "triangles triangle-" + i; })
+        .attr("d", "M 0 " + (-height/30) + " L " + (-width/30) + " " + (height/30) + "L " + (width/30) + " " + (height/30) + " Z")
+        .style("opacity",1);
 
     if (!A_P){
         svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#b3e2cd")
@@ -1074,15 +1086,53 @@ function loaded(error, usa,coor, census) {
         svg2.append("text").attr("x", 60).attr("y", 55).text("1000000-10000000").style("font-size", "15px").attr("alignment-baseline","middle")
         svg2.append("text").attr("x", 60).attr("y", 75).text("Over 100000000").style("font-size", "15px").attr("alignment-baseline","middle")
 
+        svg3.append("text").attr("x", 60).attr("y", 15).text("0-100000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 35).text("100000-1000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 55).text("1000000-10000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 75).text("Over 100000000").style("font-size", "15px").attr("alignment-baseline","middle")
+
+
         
 
     } else if(A_P) {
         console.log("TO DO");
-        svg.append("circle").attr("cx",50).attr("cy",5).attr("r", 3).style("fill", "#E58606")
-        svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 25).style("fill", "#E58606")
+        svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#b3e2cd")
+        svg.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#fdcdac")
+        svg.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#cbd5e8")
+        svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#f4cae4")
+        svg.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#e6f5c9")
+        svg.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#fff2ae")
+        svg.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#f1e2cc")
 
-        svg.append("text").attr("x", 60).attr("y", 20).text("1000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg.append("text").attr("x", 60).attr("y", 35).text("1000000 k^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 20).text("0-250000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 35).text("250000 - 500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 50).text("500000-750000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 65).text("750000-1000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 80).text("1000000-1250000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 95).text("1250000-1500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 110).text("Over 1500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",200).attr("y", 90).text("The bigger the circle and the more definitive").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",200).attr("y", 110).text("in opacity the larger the area").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg1.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",15).attr("fill",texture.url())
+        svg1.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",15).attr("fill",texture1.url())
+        svg1.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",15).attr("fill",texture2.url())
+        svg1.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",15).attr("fill",texture3.url())
+
+        svg1.append("text").attr("x", 60).attr("y", 15).text("0-500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 35).text("500000-1000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 55).text("1000000-1500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 75).text("Over 1500000").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg2.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",20).attr("fill",text.url())
+        svg2.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",20).attr("fill",text1.url())
+        svg2.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",20).attr("fill",text2.url())
+        svg2.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",20).attr("fill",text3.url())
+
+        svg2.append("text").attr("x", 60).attr("y", 15).text("0-500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 35).text("500000-1000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 55).text("1000000-1500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 75).text("Over 1500000").style("font-size", "15px").attr("alignment-baseline","middle")
 
         svg3.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#E58606")
         svg3.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#5D69B1")
@@ -1092,13 +1142,13 @@ function loaded(error, usa,coor, census) {
         svg3.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#24796C")
         svg3.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#DAA51B")
         
-        svg3.append("text").attr("x", 60).attr("y", 20).text("166666 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg3.append("text").attr("x", 60).attr("y", 35).text("333333 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg3.append("text").attr("x", 60).attr("y", 50).text("499999 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg3.append("text").attr("x", 60).attr("y", 65).text("666666 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg3.append("text").attr("x", 60).attr("y", 80).text("833331 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg3.append("text").attr("x", 60).attr("y", 95).text("999999 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg3.append("text").attr("x", 60).attr("y", 110).text("1000000 over km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 20).text("0-250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 35).text("250000-500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 50).text("500000-7500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 65).text("750000-1000000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 80).text("1000000-1250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 95).text("1250000-1500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 110).text("1500000 over km^2").style("font-size", "15px").attr("alignment-baseline","middle")
     };
     
 
