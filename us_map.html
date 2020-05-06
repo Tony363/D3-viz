@@ -78,126 +78,27 @@ var A_P = window.location.href.indexOf('true') > -1;
 // scale area too
 
 var tip = d3.tip()
-  .attr('class', 'd3-tip')
-  .offset([-5, 0])
-  .html(function(d) {
-	
-    var dataRow = countryById.get(d.properties.name);
-       if (dataRow) {
-        //    console.log(dataRow);
-           return dataRow.State + ": " +"<br />"
-           +"Under 5: "+ dataRow.Under5Years + "<br />" 
-           +"5-13: " + dataRow.r5to13Years + "<br />"
-           +"14-17: "+ dataRow.r14to17Years+ "<br />"
-           +"18-24: " + dataRow.r18to24Years+ "<br />"
-           +"25-44: "+ dataRow.r25to44Years+ "<br />"
-           +"45-64: "+ dataRow.r45to64Years +"<br />"
-           +"65 over: "+dataRow.r65YearsandOver;
-       } else {
-        //    console.log("no dataRow", d);
-           return d.properties.name + ": No data.";
-       }
-  })
-
-var tip1 = d3.tip()
     .attr('class', 'd3-tip')
     .offset([-5, 0])
     .html(function(d) {
-
-    var dataRow = countryById.get(d.properties.name);
-        if (dataRow) {
-        //    console.log(dataRow);
-            return dataRow.State + ": " +"<br />"   
+        
+        var dataRow = countryById.get(d.properties.name);
+        if (!A_P) {
+            //    console.log(dataRow);
+            return dataRow.State + ": " +"<br />"
+            +"Under 5: "+ dataRow.Under5Years + "<br />" 
             +"5-13: " + dataRow.r5to13Years + "<br />"
-        } else {
-        //    console.log("no dataRow", d);
-            return d.properties.name + ": No data.";
-        }
-    })
-
-var tip2 = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([-5, 0])
-    .html(function(d) {
-
-    var dataRow = countryById.get(d.properties.name);
-        if (dataRow) {
-       
-            return dataRow.State + ": " +"<br />"   
             +"14-17: "+ dataRow.r14to17Years+ "<br />"
-        } else {
-       
-            return d.properties.name + ": No data.";
+            +"18-24: " + dataRow.r18to24Years+ "<br />"
+            +"25-44: "+ dataRow.r25to44Years+ "<br />"
+            +"45-64: "+ dataRow.r45to64Years +"<br />"
+            +"65 over: "+dataRow.r65YearsandOver;
+        } else if (A_P) {
+            //    console.log("no dataRow", d);
+            return dataRow.areakm2 + " km^2 <br />";
         }
     })
-var tip3 = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([-5, 0])
-    .html(function(d) {
 
-    var dataRow = countryById.g
-	d.Under5Years = +d.Under5Years;
-	d.r5to13Years = +d.r5to13Years;
-	d.r14to17Years = +d.r14to17Years;
-	d.r18to24Years = +d.r18to24Years;
-	d.r25to44Years = +d.r25to44Years;
- 	d.r45to64Years = +d.r45to64Years;
-    d.r65YearsandOver = +d.r65YearsandOver;
-    d.areakm2 = +d.areakm2;et(d.properties.name);
-        if (dataRow) {
-       
-            return dataRow.State + ": " +"<br />"   
-            +"14-17: "+ dataRow.r18to24Years+ "<br />"
-        } else {
-       
-            return d.properties.name + ": No data.";
-        }
-    })
-var tip4 = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([-5, 0])
-    .html(function(d) {
-
-    var dataRow = countryById.get(d.properties.name);
-        if (dataRow) {
-       
-            return dataRow.State + ": " +"<br />"   
-            +"14-17: "+ dataRow.r25to44Years+ "<br />"
-        } else {
-       
-            return d.properties.name + ": No data.";
-        }
-    })
-var tip5 = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([-5, 0])
-    .html(function(d) {
-
-    var dataRow = countryById.get(d.properties.name);
-        if (dataRow) {
-       
-            return dataRow.State + ": " +"<br />"   
-            +"14-17: "+ dataRow.r45to64Years+ "<br />"
-        } else {
-            return d.properties.name + ": No data.";
-        }
-    })
-    
-var tip6 = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([-5, 0])
-    .html(function(d) {
-
-    var dataRow = countryById.get(d.properties.name);
-        if (dataRow) {
-       
-            return dataRow.State + ": " +"<br />"   
-            +"14-17: "+ dataRow.r65YearsandOver+ "<br />"
-        } else {
-       
-            return d.properties.name + ": No data.";
-        }
-    })
 
 const texture = textures.lines().stroke("darkorange").orientation("vertical").lighter().size(16).strokeWidth(1);
 const texture1 = textures.lines().stroke("blue").orientation("3/8").lighter().size(25).strokeWidth(1);
@@ -1119,20 +1020,20 @@ function loaded(error, usa,coor, census) {
         svg1.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",15).attr("fill",texture2.url())
         svg1.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",15).attr("fill",texture3.url())
 
-        svg1.append("text").attr("x", 60).attr("y", 15).text("0-500000").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg1.append("text").attr("x", 60).attr("y", 35).text("500000-1000000").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg1.append("text").attr("x", 60).attr("y", 55).text("1000000-1500000").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg1.append("text").attr("x", 60).attr("y", 75).text("Over 1500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 15).text("1000-50000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 35).text("50000-250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 55).text("250000-500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 75).text("Over 500000").style("font-size", "15px").attr("alignment-baseline","middle")
 
         svg2.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",20).attr("fill",text.url())
         svg2.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",20).attr("fill",text1.url())
         svg2.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",20).attr("fill",text2.url())
         svg2.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",20).attr("fill",text3.url())
 
-        svg2.append("text").attr("x", 60).attr("y", 15).text("0-500000").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg2.append("text").attr("x", 60).attr("y", 35).text("500000-1000000").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg2.append("text").attr("x", 60).attr("y", 55).text("1000000-1500000").style("font-size", "15px").attr("alignment-baseline","middle")
-        svg2.append("text").attr("x", 60).attr("y", 75).text("Over 1500000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 15).text("1000-50000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 35).text("50000-250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 55).text("250000-500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 75).text("Over 500000").style("font-size", "15px").attr("alignment-baseline","middle")
 
         svg3.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#E58606")
         svg3.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#5D69B1")
@@ -1149,6 +1050,10 @@ function loaded(error, usa,coor, census) {
         svg3.append("text").attr("x", 60).attr("y", 80).text("1000000-1250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
         svg3.append("text").attr("x", 60).attr("y", 95).text("1250000-1500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
         svg3.append("text").attr("x", 60).attr("y", 110).text("1500000 over km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg5.append("circle").attr("cx",50).attr("cy",50).attr("r", 6).style("fill", "black").style("opacity",0.1)
+        svg5.append("circle").attr("cx",70).attr("cy",50).attr("r", 6).style("fill", "black").style("opacity",0.9)
+        svg5.append("circle").attr("x", 100).attr("y", 50).text("grayscale: light to dark").style("font-size", "15px")//.attr("alignment-baseline","middle")
     };
     
 
