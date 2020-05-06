@@ -66,7 +66,7 @@ a:hover{
 <script src="d3.legend.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script src="https://unpkg.com/textures@1.2.0/dist/textures.js"></script>
-
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 
 <script>
 
@@ -76,31 +76,6 @@ var width = 900;
 
 var A_P = window.location.href.indexOf('true') > -1;
 // scale area too
-
-// var dropdown = d3.select("#vis-container")
-//             .insert("select", "svg")
-//             .on("change",dropdownChange)
-
-//             .selectAll("option")
-//             .data(['Population','Area'])
-//             .enter().append("option")
-//             .attr("value", function(d){
-//                 return d;
-//             })
-//             .text(function(d){
-//                 return d;
-//             })
-
-// // Handler for dropdown value change
-// var dropdownChange = function() {
-//     console.log('change');
-//            var url = window.location.origin +
-//             window.location.pathname + A_P ? '?A_P=true' : '';
-//             window.location.href = url;
-//         };
-
-
-
 
 var tip = d3.tip()
   .attr('class', 'd3-tip')
@@ -207,6 +182,7 @@ var tip5 = d3.tip()
             return d.properties.name + ": No data.";
         }
     })
+    
 var tip6 = d3.tip()
     .attr('class', 'd3-tip')
     .offset([-5, 0])
@@ -224,18 +200,15 @@ var tip6 = d3.tip()
     })
 
 const texture = textures.lines().stroke("darkorange").orientation("vertical").lighter().size(16).strokeWidth(1);
-const texture1 = textures.lines().stroke("darkorange").orientation("3/8").lighter().size(16).strokeWidth(1);
-const texture2 = textures.lines().stroke("darkorange").orientation("7/8").lighter().size(16).strokeWidth(1);
-const texture3 = textures.lines().stroke("darkorange").orientation("4/8").lighter().size(16).strokeWidth(1);
+const texture1 = textures.lines().stroke("blue").orientation("3/8").lighter().size(25).strokeWidth(1);
+const texture2 = textures.lines().stroke("red").orientation("7/8").lighter().size(25).strokeWidth(1);
+const texture3 = textures.lines().stroke("green").orientation("4/8").lighter().size(16).strokeWidth(1);
 
 
-const text = textures.circles().lighter();
-const text1 = textures.circles().thinner();
-const text2 = textures.circles().thicker();
+const text = textures.paths().d("crosses").size(8).strokeWidth(2).stroke("darkorange")
+const text1 = textures.paths().d("hexagons").lighter().thicker();
+const text2 = textures.paths().d("caps").lighter().thicker().stroke("red")
 const text3 = textures.circles().heavier();
-
-
-
 
 
 
@@ -274,10 +247,6 @@ var svg4 = d3.select('#vis2').append('svg')
 var svg5 = d3.select('#vis2').append('svg')
     .attr('width', width)
     .attr('height', height)
- 
-
-
-
 
 svg.call(tip);
 
@@ -300,8 +269,8 @@ var areaRadiusScale = d3.scale
 
 var opacityScale = d3.scale
                     .linear()
-                    .range([0.1,0.9])
-                    .domain([0,5000000]);
+                    .range([0,1])
+                    .domain([0,1000000]);
 
 var AreaOpacityScale = d3.scale
                         .linear()
@@ -310,11 +279,11 @@ var AreaOpacityScale = d3.scale
 
 var colorScale = d3.scale
                     .linear()
-                    .range(["#E58606","#5D69B1","#52BCA3","#99C945","#24796C","#DAA51B"])
-                    .domain([0,5000000])
+                    .range(["#b3e2cd","#fdcdac","#cbd5e8","#f4cae4","#e6f5c9","#fff2ae","#f1e2cc"])
+                    .domain([0,4000000])
 var areaColor = d3.scale
                     .linear()
-                    .range(["#E58606","#5D69B1","#52BCA3","#99C945","#24796C","#DAA51B"])
+                    .range(["#b3e2cd","#fdcdac","#cbd5e8","#f4cae4","#e6f5c9","#fff2ae","#f1e2cc"])
                     .domain([0,200000])
 
 
@@ -350,9 +319,67 @@ function getColor(d){
     if (A_P) {
         
         return areaColor(dataRow.areakm2)
-    } 
+    } else if (!A_P){
+        return colorScale(dataRow.Under5Years)
+    }
     return 'no data'
 };
+
+function r5_13_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r5to13Years);
+    } 
+    return "None";
+    };
+
+function r14_17_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r14to17Years);
+    } 
+    return "None";
+    };
+
+function r18_24_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r18to24Years);
+    } 
+    return "None";
+    };
+
+function r25_44_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r25to44Years);
+    } 
+    return "None";
+    };
+
+function r44_65_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r45to64Years);
+    } 
+    return "None";
+    };
+
+function Over65_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {   
+
+        return colorScale(dataRow.r65YearsandOver);
+    } 
+    return "None";
+    };
+
 function getRadius(d) {
     var dataRow = countryById.get(d.properties.name);
 // console.log(dataRow);
@@ -493,116 +520,109 @@ function opacity7(d){
     return 0;
 };
 
-function AreaOpacity(shapes,states){
-    // console.log(shapes[1]);
-    var state_names = states.map(function(d){
-        return d.properties.name
-    });
-    // console.log(state_names.length)
-    for (var index = 0;index < state_names.length;++index){
-        // console.log(state_names[index])
-        var dataRow = countryById.get(state_names[index]);
-        if (!A_P){
-            var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
-            var sum_array = array.reduce(function(a,b){
-                    return a+b;
-                },0);
-            if (sum_array >= 1000 && sum_array <= 10000){
-                // console.log(sum_array);
-                return texture.url();
-            } else if (sum_array > 10000 && sum_array <= 100000 ) {
-                // console.log(sum_array);
-                return texture1.url();
-            } else if (sum_array > 100000 && sum_array <= 1000000){
-                // console.log(sum_array);
-                return texture2.url();
-            } else {
-                // console.log(sum_array);
-                return texture3.url();
-            };
-            }else if(A_P){
-                // console.log(dataRow.areakm2)
-                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 10000){
-                    // console.log("yahha")
-                    shapes[0].style("opacity",1);
-                    shapes[1].style("opacity",0);
-                    shapes[2].style("opacity",0);
-                    shapes[3].style("opacity",0);
-                } else if (dataRow.areakm2 > 10000 && dataRow.areakm2 <= 100000 ){
-                    // console.log("whatt")
-                    shapes[0].style("opacity",0);
-                    shapes[1].style("opacity",1);
-                    shapes[2].style("opacity",0);
-                    shapes[3].style("opacity",0);
-                } else if (dataRow.areakm2 > 100000 && dataRow.areakm2 <= 1000000){
-                    // console.log("why")
-                    shapes[0].style("opacity",0);
-                    shapes[1].style("opacity",0);
-                    shapes[2].style("opacity",1);
-                    shapes[3].style("opacity",0);
-                } else {
-                    // console.log("WTF");
-                    shapes[0].style("opacity",0);
-                    shapes[1].style("opacity",0);
-                    shapes[2].style("opacity",0);
-                    shapes[3].style("opacity",1);
-
-                };
-            }
-    }   
-}
-
 function triagleOpacity(d){
     var dataRow = countryById.get(d.properties.name);
-   
-    if (dataRow.areakm2 > 1000 && dataRow.areakm2 < 10000){
-        return 1
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 > 50000 && dataRow.areakm2 <= 250000 ){
+            return 1;
+        }
+    }
+    if (!A_P){
+        (sum_array > 100000 && sum_array <= 1000000)
+        if (sum_array > 100000 && sum_array <= 1000000){
+            return 1;
+        }  
     }
     return 0
 }
 
 function squareOpacity(d){
     var dataRow = countryById.get(d.properties.name);
-    
-    if (dataRow.areakm2 > 10000 && dataRow.areakm2 < 100000){
-        return 1
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 > 10000 && dataRow.areakm2 < 100000){
+            return 1
+        }
     }
-    return 0
+    
+    if (!A_P){
+        if (sum_array >= 1000000 && sum_array <= 10000000){
+            return 1
+        }  
+    }
+    return 0 
 }
 
 function rectangleOpacity(d){
     var dataRow = countryById.get(d.properties.name);
-   
-    if (dataRow.areakm2 > 100000 && dataRow.areakm2 < 1000000){
-        return 1
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 50000){
+            return 1
+        }
     }
-    return 0
+    if (!A_P){
+        if (sum_array > 0 && sum_array <= 100000){
+            return 1
+        }   
+    }
+    return 0 
 }
 
 function circleOpacity(d){
     var dataRow = countryById.get(d.properties.name);
-   
-    if (dataRow.areakm2 > 1000000 && dataRow.areakm2 < 5000000){
-        return 1
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 > 250000 && dataRow.areakm2 <= 500000){
+            return 1
+        }
+    }
+    
+    if (!A_P){
+        if (sum_array > 10000 && sum_array <= 100000 ){
+            return 1
+        }   
     }
     return 0
 }
 
 function ellipseOpacity(d){
     var dataRow = countryById.get(d.properties.name);
-    console.log(dataRow.areakm2)
-    if (dataRow.areakm2 > 5000000){
-        return 1
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 > 500000){
+            return 1
+        }
+    }
+    if (!A_P){   
+        if (sum_array > 10000000){
+            return 1
+        }     
     }
     return 0
+    
 }
 
 
 
 // main data binding function
 function loaded(error, usa,coor, census) {
-
-    
     // console.log(census);
     // console.log(coor);
     // console.log(usa);
@@ -612,7 +632,7 @@ function loaded(error, usa,coor, census) {
     var states = topojson.feature(usa, usa.objects.units).features;
     
     
-    var colormap = svg.append("g")
+    var map = svg.append("g")
         .selectAll('states')
         .data(states)
         .enter()
@@ -623,7 +643,7 @@ function loaded(error, usa,coor, census) {
         .on('mouseout', (d) => { tip.hide(d);});
       
     
-    var colormap1 = svg1.append("g")
+    var map1 = svg1.append("g")
         .selectAll('states')
         .data(states)
         .enter()
@@ -634,7 +654,17 @@ function loaded(error, usa,coor, census) {
         .on('mouseout', (d) => { tip.hide(d);});
      
     
-    var colormap2 = svg2.append("g")
+    var map2 = svg2.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append('path')
+        .attr('class', 'states')
+        .attr('d', path)
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+    
+    var map2 = svg3.append("g")
         .selectAll('states')
         .data(states)
         .enter()
@@ -685,7 +715,6 @@ function loaded(error, usa,coor, census) {
                         .enter()
                         .append("rect")
                         .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
-                       
                         .attr("width", 10)
                         .attr("height", 10)
                         .style("opacity",squareOpacity);
@@ -696,7 +725,6 @@ function loaded(error, usa,coor, census) {
                         .enter()
                         .append("rect")
                         .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
-                       
                         .attr("width", 10)
                         .attr("height", 20)
                         .style("opacity",rectangleOpacity);
@@ -707,7 +735,6 @@ function loaded(error, usa,coor, census) {
                         .enter()
                         .append("ellipse")
                         .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
-                        
                         .attr("rx", 25)
                         .attr("ry", 10)
                         .style("opacity",ellipseOpacity);    
@@ -719,7 +746,6 @@ function loaded(error, usa,coor, census) {
                         .enter()
                         .append("circle")
                         .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
-                       
                         .attr("r",20)
                         .style("opacity",circleOpacity);
 
@@ -733,10 +759,61 @@ function loaded(error, usa,coor, census) {
                         .attr("d", "M 0 " + (-height/30) + " L " + (-width/30) + " " + (height/30) + "L " + (width/30) + " " + (height/30) + " Z")
                         .style("opacity",triagleOpacity);
 
-        var shapes = [triangles,circle,rectangle,square]
-    
-        // AreaOpacity(shapes,states);
-      
+       
+    } else if (!A_P){
+        var square = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("rect")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                       
+                        .attr("width", 10)
+                        .attr("height", 10)
+                        .style("opacity",squareOpacity);
+
+        var rectangle = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("rect")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                       
+                        .attr("width", 10)
+                        .attr("height", 20)
+                        .style("opacity",rectangleOpacity);
+        
+        var ellipse = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("ellipse")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        
+                        .attr("rx", 25)
+                        .attr("ry", 10)
+                        .style("opacity",ellipseOpacity);    
+                      
+
+        var circle = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("circle")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                       
+                        .attr("r",20)
+                        .style("opacity",circleOpacity);
+
+        var triangles = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("path")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .attr("class", function(d,i) { return "triangles triangle-" + i; })
+                        .attr("d", "M 0 " + (-height/30) + " L " + (-width/30) + " " + (height/30) + "L " + (width/30) + " " + (height/30) + " Z")
+                        .style("opacity",triagleOpacity);
     }
        
     
@@ -755,13 +832,13 @@ function loaded(error, usa,coor, census) {
                 var sum_array = array.reduce(function(a,b){
                     return a+b;
                 },0);
-                if (sum_array >= 1000 && sum_array <= 10000){
+                if (sum_array >= 0 && sum_array <= 100000){
                     // console.log(sum_array);
                     return texture.url();
-                } else if (sum_array > 10000 && sum_array <= 100000 ) {
+                } else if (sum_array > 100000 && sum_array <= 1000000 ) {
                     // console.log(sum_array);
                     return texture1.url();
-                } else if (sum_array > 100000 && sum_array <= 1000000){
+                } else if (sum_array > 1000000 && sum_array <= 10000000){
                     // console.log(sum_array);
                     return texture2.url();
                 } else {
@@ -769,19 +846,19 @@ function loaded(error, usa,coor, census) {
                     return texture3.url();
                 };
             }else if(A_P){
-                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 10000){
+                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 50000){
                     // console.log(sum_array);
                     return texture.url();
-                } else if (dataRow.areakm2 > 10000 && dataRow.areakm2<= 100000 ) {
+                } else if (dataRow.areakm2 > 50000 && dataRow.areakm2 <= 250000 ) {
                     // console.log(sum_array);
                     return texture1.url();
-                } else if (dataRow.areakm2 > 100000 && dataRow.areakm2 <= 1000000){
+                } else if (dataRow.areakm2 > 250000 && dataRow.areakm2 <= 500000){
                     // console.log(sum_array);
                     return texture2.url();
                 } else {
                     // console.log(sum_array);
                     return texture3.url();
-                };
+                }
             }
             return "nothing";
         })
@@ -797,18 +874,18 @@ function loaded(error, usa,coor, census) {
                         .attr('d',path)
                         .style('fill', function(d,i){
                             var dataRow = countryById.get(d.properties.name)
-                            if (dataRow){
+                            if (!A_P){
                                 var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver] 
                                 var sum_array = array.reduce(function(a,b){
                                     return a+b;
                                 },0);
-                                if (sum_array >= 1000 && sum_array <= 10000){
+                                if (sum_array >= 0 && sum_array <= 100000){
                                     // console.log(sum_array);
                                     return text.url();
-                                } else if (sum_array > 10000 && sum_array <= 100000 ) {
+                                } else if (sum_array > 100000 && sum_array <= 1000000 ) {
                                     // console.log(sum_array);
                                     return text1.url();
-                                } else if (sum_array > 100000 && sum_array <= 1000000){
+                                } else if (sum_array > 1000000 && sum_array <= 10000000){
                                     // console.log(sum_array);
                                     return text2.url();
                                 } else {
@@ -817,20 +894,19 @@ function loaded(error, usa,coor, census) {
                                 };
                             }else if (A_P){
                                 
-                                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 10000){
+                                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 50000){
                                     // console.log(sum_array);
                                     return text.url();
-                                } else if (dataRow.areakm2 > 10000 && dataRow.areakm2 <= 100000 ) {
+                                } else if (dataRow.areakm2 > 50000 && dataRow.areakm2 <= 250000 ) {
                                     // console.log(sum_array);
                                     return text1.url();
-                                } else if (dataRow.areakm2 > 100000 && dataRow.areakm2 <= 1000000){
+                                } else if (dataRow.areakm2 > 250000 && dataRow.areakm2 <= 500000){
                                     // console.log(sum_array);
                                     return text2.url();
                                 } else {
                                     // console.log(sum_array);
                                     return text3.url();
-                                };
-
+                                }
                             }
                             return "nothing";
                         })
@@ -851,7 +927,7 @@ function loaded(error, usa,coor, census) {
         })
         .on('mouseover', (d) => { tip.show(d)})
         .on('mouseout', (d) => { tip.hide(d);})
-        .attr("fill","#E58606")
+        .attr("fill",getColor)
         .style("opacity",opacity1);
 
     var r5to13Years_bubles = svg.append('g')
@@ -868,7 +944,7 @@ function loaded(error, usa,coor, census) {
         })
         .on('mouseover', (d) => { tip.show(d)})
         .on('mouseout', (d) => { tip.hide(d);})
-        .attr("fill","#5D69B1")
+        .attr("fill",r5_13_Color)
         .style("opacity",opacity2);
 
     var r14to17Years_bubbles = svg.append('g')
@@ -883,7 +959,7 @@ function loaded(error, usa,coor, census) {
         .attr("r",function(d,i){
             return r14_17_Radius(d)
         })
-        .attr("fill","#52BCA3")
+        .attr("fill",r14_17_Color)
         .style("opacity",opacity3);
     
     var r18to24Years_bubbles = svg.append('g')
@@ -900,7 +976,7 @@ function loaded(error, usa,coor, census) {
         })
         .on('mouseover', (d) => { tip.show(d)})
         .on('mouseout', (d) => { tip.hide(d);})
-        .attr("fill","#99C945")
+        .attr("fill",r18_24_Color)
         .style("opacity",opacity4);
     
     var r25to44Years_bubbles = svg.append('g')
@@ -917,7 +993,7 @@ function loaded(error, usa,coor, census) {
         })
         .on('mouseover', (d) => { tip.show(d)})
         .on('mouseout', (d) => { tip.hide(d);})
-        .attr("fill","#CC61B0")
+        .attr("fill",r25_44_Color)
         .style("opacity",opacity5);
     
     var r45to64Years_bubbles = svg.append('g')
@@ -935,7 +1011,7 @@ function loaded(error, usa,coor, census) {
         })
         .on('mouseover', (d) => { tip.show(d)})
         .on('mouseout', (d) => { tip.hide(d);})
-        .attr("fill","#24796C")
+        .attr("fill",r44_65_Color)
         .style("opacity",opacity6);
     
     var Over65_bubbles = svg.append('g')
@@ -952,39 +1028,21 @@ function loaded(error, usa,coor, census) {
         })
         .on('mouseover', (d) => { tip.show(d)})
         .on('mouseout', (d) => { tip.hide(d);})
-        .attr("fill","#DAA51B")
+        .attr("fill",Over65_Color)
         .style("opacity",opacity7);
 
         // cs cy set location
 
-    svg1.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",15).attr("fill",texture.url())
-    svg1.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",15).attr("fill",texture1.url())
-    svg1.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",15).attr("fill",texture2.url())
-    svg1.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",15).attr("fill",texture3.url())
 
-    svg1.append("text").attr("x", 60).attr("y", 15).text("text").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg1.append("text").attr("x", 60).attr("y", 35).text("text a").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg1.append("text").attr("x", 60).attr("y", 55).text("text b").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg1.append("text").attr("x", 60).attr("y", 75).text("text c").style("font-size", "15px").attr("alignment-baseline","middle")
-    
-    svg2.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",20).attr("fill",text.url())
-    svg2.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",20).attr("fill",text1.url())
-    svg2.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",20).attr("fill",text2.url())
-    svg2.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",20).attr("fill",text3.url())
-
-    svg2.append("text").attr("x", 60).attr("y", 15).text("text").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg2.append("text").attr("x", 60).attr("y", 35).text("text a").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg2.append("text").attr("x", 60).attr("y", 55).text("text b").style("font-size", "15px").attr("alignment-baseline","middle")
-    svg2.append("text").attr("x", 60).attr("y", 75).text("text c").style("font-size", "15px").attr("alignment-baseline","middle")
 
     if (!A_P){
-        svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#E58606")
-        svg.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#5D69B1")
-        svg.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#52BCA3")
-        svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#99C945")
-        svg.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#CC61B0")
-        svg.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#24796C")
-        svg.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#DAA51B")
+        svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#b3e2cd")
+        svg.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#fdcdac")
+        svg.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#cbd5e8")
+        svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#f4cae4")
+        svg.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#e6f5c9")
+        svg.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#fff2ae")
+        svg.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#f1e2cc")
 
         svg.append("text").attr("x", 60).attr("y", 20).text("5 and under").style("font-size", "15px").attr("alignment-baseline","middle")
         svg.append("text").attr("x", 60).attr("y", 35).text("5 - 13 Age").style("font-size", "15px").attr("alignment-baseline","middle")
@@ -993,6 +1051,28 @@ function loaded(error, usa,coor, census) {
         svg.append("text").attr("x", 60).attr("y", 80).text("25 - 44 Age").style("font-size", "15px").attr("alignment-baseline","middle")
         svg.append("text").attr("x", 60).attr("y", 95).text("45 - 65 Age").style("font-size", "15px").attr("alignment-baseline","middle")
         svg.append("text").attr("x", 60).attr("y", 110).text("Age 64 and over").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",200).attr("y", 90).text("The bigger the circle and the more definitive").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",200).attr("y", 110).text("in opacity the larger the population group").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg1.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",15).attr("fill",texture.url())
+        svg1.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",15).attr("fill",texture1.url())
+        svg1.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",15).attr("fill",texture2.url())
+        svg1.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",15).attr("fill",texture3.url())
+
+        svg1.append("text").attr("x", 60).attr("y", 15).text("0-100000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 35).text("100000-1000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 55).text("1000000-10000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 75).text("Over 10000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        
+        svg2.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",20).attr("fill",text.url())
+        svg2.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",20).attr("fill",text1.url())
+        svg2.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",20).attr("fill",text2.url())
+        svg2.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",20).attr("fill",text3.url())
+
+        svg2.append("text").attr("x", 60).attr("y", 15).text("0-100000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 35).text("100000-1000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 55).text("1000000-10000000").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 75).text("Over 100000000").style("font-size", "15px").attr("alignment-baseline","middle")
 
         
 
