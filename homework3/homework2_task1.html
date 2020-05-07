@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
+<head>
+  <h1>US population census</h1>
+  <a href="us_map.html"><button>US Map Visuals</button></a>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <style>
 
-.bar {
-  fill: steelblue;
-}
+    .bar {
+      fill: steelblue;
+    }
+    
+    .axis path {
+      /*display: none;*/
+    }
+    
+    
+    </style>
+</head>
 
-.axis path {
-  /*display: none;*/
-}
-
-
-</style>
 <body>
 
 <div id="stackedbars">
-  <h1>US population census</h1>
-  <a href="us_map.html"><button>US Map Visuals</button></a>
+  
   <svg id="census" width="1600" height="1300"></svg></div>
 </body>
-<script src="https://d3js.org/d3.v4.min.js"></script>
+
 <script>
 
 // this section sets up the svg, margin, width and height 
