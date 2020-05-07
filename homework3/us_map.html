@@ -1,0 +1,1123 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>homeword 3 visualization</title>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,300' rel='stylesheet' type='text/css'>
+<style>
+
+
+body {
+    font-family: "Open Sans", sans-serif;
+    font-size: 16px;
+    padding: 40px;
+}
+h1{
+  font-size: 3em;
+  font-weight: 700;
+  color: #0099FF;
+}
+a{
+  color: #333399;
+}
+a:hover{
+  color: #FF0099;
+}
+
+.states {
+    fill: lightgrey;
+    stroke: #fff; 
+    stroke-width:1px;
+}
+.states:hover{
+  opacity: .6;
+}
+
+.legendLinear text {
+    font-size: 12px;
+}
+.d3-tip {
+  line-height: 1;
+  padding: 12px;
+  background: rgba(43,43,43, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+
+</style>
+<body>
+    <div id="circle"></div>
+    <div id="vis-container"></div>
+   
+    <a href="us_map.html?ap=true"><button>Area</button></a>
+    <a href="us_map.html"><button>Population</button></a>
+    
+    <a href="homework2_task1.html"><button>Census Stack Bar Chart</button></a>
+
+    <h1 id="title">US Population Census</h1>
+
+    
+
+    <div id="vis"></div>
+    <div id="vis1"></div>
+    <div id="vis2"></div>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="hello.js"></script>
+<script src="//d3js.org/queue.v1.min.js"></script>
+<!-- <script src="d3-legend.min.js"></script> -->
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<!-- <script src="d3.legend.js"></script> -->
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script src="https://unpkg.com/textures@1.2.0/dist/textures.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+<script>
+
+
+var width = 900;
+    height = 700;
+
+var A_P = window.location.href.indexOf('true') > -1;
+// scale area too
+// if(A_P){
+//      "<h1>US Area Census </h1>"   
+// } else if(!A_P){
+//      "<h1>US Population Census </h1>" 
+// }
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-5, 0])
+    .html(function(d) {
+        
+        var dataRow = countryById.get(d.properties.name);
+        var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver] 
+        var sum_array = array.reduce(function(a,b){
+            return a+b;
+        },0);
+        if (!A_P) {
+            //    console.log(dataRow);
+            return dataRow.State + ": " +"<br />"
+            +"Under 5: "+ dataRow.Under5Years + "<br />" 
+            +"5-13: " + dataRow.r5to13Years + "<br />"
+            +"14-17: "+ dataRow.r14to17Years+ "<br />"
+            +"18-24: " + dataRow.r18to24Years+ "<br />"
+            +"25-44: "+ dataRow.r25to44Years+ "<br />"
+            +"45-64: "+ dataRow.r45to64Years +"<br />"
+            +"65 over: "+dataRow.r65YearsandOver +"<br />"
+            + "Total pop:"+sum_array+ "<br />"
+        } else if (A_P) {
+            //    console.log("no dataRow", d);
+            return dataRow.areakm2 + " km^2 <br />";
+        }
+    })
+
+
+const texture = textures.lines().stroke("darkorange").orientation("vertical").lighter().size(16).strokeWidth(1);
+const texture1 = textures.lines().stroke("blue").orientation("3/8").lighter().size(25).strokeWidth(1);
+const texture2 = textures.lines().stroke("red").orientation("7/8").lighter().size(25).strokeWidth(1);
+const texture3 = textures.lines().stroke("green").orientation("4/8").lighter().size(16).strokeWidth(1);
+
+
+const text = textures.paths().d("crosses").size(8).strokeWidth(2).stroke("darkorange")
+const text1 = textures.paths().d("hexagons").lighter().thicker();
+const text2 = textures.paths().d("caps").lighter().thicker().stroke("red")
+const text3 = textures.circles().heavier();
+
+
+
+var svg = d3.select('#vis').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+    svg.call(texture);
+
+var svg1 = d3.select('#vis1').append('svg')
+    .attr('width', width)
+    .attr('height', height);
+    svg1.call(texture1)
+    svg1.call(texture2)
+    svg1.call(texture3)
+
+
+var svg2 = d3.select('#vis2').append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    svg2.call(text)
+    svg2.call(text1)
+    svg2.call(text3)
+    svg2.call(text2)
+
+var svg3 = d3.select('#vis2').append('svg')
+    .attr('width', width)
+    .attr('height', height)
+  
+
+var svg4 = d3.select('#vis2').append('svg')
+    .attr('width', width)
+    .attr('height', height)
+   
+
+var svg5 = d3.select('#vis2').append('svg')
+    .attr('width', width)
+    .attr('height', height)
+
+svg.call(tip);
+
+var projection = d3.geo.albersUsa()
+    .scale(900) // mess with this if you want
+    .translate([width / 2, height / 2]);
+
+var path = d3.geo.path()
+    .projection(projection);
+
+var radiusScale = d3.scale
+                    .linear()
+                    .range([1,25])
+                    .domain([0, 5000000]);
+
+var areaRadiusScale = d3.scale
+                        .linear()
+                        .range([1,25])
+                        .domain([0,1000000])
+
+var opacityScale = d3.scale
+                    .linear()
+                    .range([0,1])
+                    .domain([0,100000]);
+
+var AreaOpacityScale = d3.scale
+                        .linear()
+                        .range([0.1,.9])
+                        .domain([0,1200000])
+var AreaSizeScale = d3.scale
+                        .linear()
+                        .range([0.1,0.9])
+                        .domain([0,1500000])
+
+var colorScale = d3.scale
+                    .linear()
+                    .range(["#b3e2cd","#fdcdac","#cbd5e8","#f4cae4","#e6f5c9","#fff2ae","#f1e2cc"])
+                    .domain([0,8000000])
+var areaColor = d3.scale
+                    .linear()
+                    .range(["#b3e2cd","#fdcdac","#cbd5e8","#f4cae4","#e6f5c9","#fff2ae","#f1e2cc"])
+                    .domain([0,1500000])
+
+
+var census_choice = ['Population','Area']
+
+
+
+var countryById = d3.map();
+
+// we use queue because we have 2 data files to load.
+queue()
+    .defer(d3.json, "USA.json")
+    .defer(d3.json,"usa-state-capitals.json")
+    .defer(d3.csv, "census.csv", typeAndSet) // process
+    .await(loaded);
+
+function typeAndSet(d) {
+	// console.log(d)
+	d.Under5Years = +d['Under 5 Years'];
+    d.r5to13Years = +d['5 to 13 Years'];
+	d.r14to17Years = +d['14 to 17 Years'];
+	d.r18to24Years = +d['18 to 24 Years'];
+	d.r25to44Years = +d['25 to 44 Years'];
+ 	d.r45to64Years = +d['45 to 64 Years'];
+    d.r65YearsandOver = +d['65 Years and Over'];
+    d.areakm2 = +d['area km2'];
+	countryById.set(d.State,d)
+	// console.log(countryById);
+    return d;
+};
+function getColor(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (A_P) {
+        
+        return areaColor(dataRow.areakm2)
+    } else if (!A_P){
+        return colorScale(dataRow.Under5Years)
+    }
+    return 'no data'
+};
+
+function r5_13_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r5to13Years);
+    } 
+    return "None";
+    };
+
+function r14_17_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r14to17Years);
+    } 
+    return "None";
+    };
+
+function r18_24_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r18to24Years);
+    } 
+    return "None";
+    };
+
+function r25_44_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r25to44Years);
+    } 
+    return "None";
+    };
+
+function r44_65_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {    
+        return colorScale(dataRow.r45to64Years);
+    } 
+    return "None";
+    };
+
+function Over65_Color(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {   
+
+        return colorScale(dataRow.r65YearsandOver);
+    } 
+    return "None";
+    };
+
+function getRadius(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {
+       
+        return radiusScale(dataRow.Under5Years);
+    } else if (A_P) {
+        return areaRadiusScale(dataRow.areakm2)
+    }
+    return 5;
+    };
+
+
+function r5_13_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {
+       
+        return radiusScale(dataRow.r5to13Years);
+    } 
+    return 5;
+    };
+
+function r14_17_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {
+    //    console.log(dataRow);
+        return radiusScale(dataRow.r14to17Years);
+    } 
+    return 5;
+    };
+
+function r18_24_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P ) {
+    //    console.log(dataRow);
+        return radiusScale(dataRow.r18to24Years);
+    } 
+    return 5;
+    };
+
+function r25_44_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {
+        // conso!A_PdataRow);
+        return radiusScale(dataRow.r25to44Years);
+    }
+    return 5;
+    };
+
+function r45_64_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P) {
+    //    console.log(dataRow);
+        return radiusScale(dataRow.r45to64Years);
+    } 
+    return 5;
+    };
+
+function Over65_Radius(d) {
+    var dataRow = countryById.get(d.properties.name);
+// console.log(dataRow);
+    if (!A_P ) {
+    //    console.log(dataRow);
+        return radiusScale(dataRow.r45to64Years);
+    } 
+    return 5;
+    
+    };
+
+function opacity1(d){
+    var dataRow = countryById.get(d.properties.name);
+    if (!A_P){
+        return opacityScale(dataRow.Under5Years)
+    } else if (A_P){
+        return opacityScale(dataRow.areakm2)
+    }
+    return 0;
+}
+
+
+function opacity2(d){
+
+    var dataRow = countryById.get(d.properties.name);
+    // console.log(dataRow);
+    if (!A_P){
+        return opacityScale(dataRow.r5to13Years)
+    } 
+    return 0;
+};
+
+function opacity3(d){
+    var dataRow = countryById.get(d.properties.name);
+    // console.log(dataRow);
+    if (!A_P){
+        return opacityScale(dataRow.r14to17Years)
+    } 
+    return 0;
+};
+
+function opacity4(d){
+    var dataRow = countryById.get(d.properties.name);
+    // // console.log(dataRow);
+    if (!A_P){
+        return opacityScale(dataRow.r18to24Years)
+    } 
+    return 0;
+};
+
+function opacity5(d){
+    var dataRow = countryById.get(d.properties.name);
+    // console.log(dataRow);
+    if (!A_P){
+        return opacityScale(dataRow.r25to44Years)
+    } 
+    return 0;
+};
+
+function opacity6(d){
+    var dataRow = countryById.get(d.properties.name);
+    // console.log(dataRow);
+    if (!A_P){
+        return opacityScale(dataRow.r45to64Years)
+    }
+    return 0;
+};
+
+function opacity7(d){
+    var dataRow = countryById.get(d.properties.name);
+    // console.log(dataRow);
+    if (!A_P){
+        return opacityScale(dataRow.r65YearsandOver);
+    }
+    return 0;
+};
+
+function triagleOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 > 50000 && dataRow.areakm2 <= 250000 ){
+            return 1;
+        }
+    }
+    if (!A_P){
+        
+        if (sum_array > 10000000){
+            return 1;
+        }  
+    }
+    return 0
+}
+
+function squareOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 > 0 && dataRow.areakm2 < 100000){
+            return 1
+        }
+    }
+    
+    if (!A_P){
+        if (sum_array >= 0 && sum_array <= 100000){
+            return 1
+        }  
+    }
+    return 0 
+}
+
+function rectangleOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 >= 50000 && dataRow.areakm2 <= 250000){
+            return 1
+        }
+    }
+    if (!A_P){
+        if (sum_array > 100000 && sum_array <= 1000000){
+            return 1
+        }   
+    }
+    return 0 
+}
+
+function circleOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 > 500000){
+            return 1
+        }
+    }
+    
+    if (!A_P){
+     
+        if (sum_array > 10000000){
+            return 1
+        }   
+    }
+    return 0
+}
+
+function ellipseOpacity(d){
+    var dataRow = countryById.get(d.properties.name);
+    var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+    var sum_array = array.reduce(function(a,b){
+        return a+b;
+    },0);
+    if (A_P){
+        if (dataRow.areakm2 > 250000 && dataRow.areakm2 < 500000){
+            return 1
+        }
+    }
+    if (!A_P){   
+        if (sum_array > 1000000 && sum_array <= 10000000){
+            return 1
+        }     
+    }
+    return 0
+    
+}
+
+
+
+// main data binding function
+function loaded(error, usa,coor, census) {
+    // console.log(census);
+    // console.log(coor);
+    // console.log(usa);
+
+    var area = census.map(function(d){return d.areakm2});
+
+    var states = topojson.feature(usa, usa.objects.units).features;
+    
+    
+    var map = svg.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append('path')
+        .attr('class', 'states')
+        .attr('d', path)
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+      
+    
+    var map1 = svg1.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append('path')
+        .attr('class', 'states')
+        .attr('d', path)
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+     
+    
+    var map2 = svg2.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append('path')
+        .attr('class', 'states')
+        .attr('d', path)
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+    
+    var map2 = svg3.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append('path')
+        .attr('class', 'states')
+        .attr('d', path)
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+    
+    if (A_P){
+        var colormap3 = svg3.append("g")
+                            .selectAll("states")
+                            .data(states)
+                            .enter()
+                            .append('path')
+                            .attr('class','states')
+                            .attr('d',path)
+                            .on('mouseover', (d) => { tip.show(d)})
+                            .on('mouseout', (d) => { tip.hide(d);})
+                            .style("fill",getColor)
+
+        var colormap3 = svg4.append("g")
+                            .selectAll("states")
+                            .data(states)
+                            .enter()
+                            .append('path')
+                            .attr('class','states')
+                            .attr('d',path)
+                            .on('mouseover', (d) => { tip.show(d)})
+                            .on('mouseout', (d) => { tip.hide(d);})
+
+        
+        var colormap3 = svg5.append("g")
+                            .selectAll("states")
+                            .data(states)
+                            .enter()
+                            .append('path')
+                            .attr('class','states')
+                            .attr('d',path)
+                            .on('mouseover', (d) => { tip.show(d)})
+                            .on('mouseout', (d) => { tip.hide(d);})
+                            .style("fill","black")
+                            .style("opacity",function(d){
+                                var dataRow = countryById.get(d.properties.name);
+                                return AreaSizeScale(dataRow.areakm2)
+                            });
+        
+        var square = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("rect")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .attr("width", 10)
+                        .attr("height", 10)
+                        .style("fill","yellow")
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);})
+                        .style("opacity",squareOpacity);
+
+        var rectangle = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("rect")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .attr("width", 10)
+                        .attr("height", 20)
+                        .style("fill","orange")
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);})
+                        .style("opacity",rectangleOpacity);
+        
+        var ellipse = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("ellipse")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .attr("rx", 25)
+                        .attr("ry", 10)
+                        .style("fill","blue")
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);})
+                        .style("opacity",ellipseOpacity);    
+                      
+
+        var circle = svg4.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("circle")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .attr("r",20)
+                        .style("fill","green")
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);})
+                        .style("opacity",circleOpacity);
+
+        // var triangles = svg4.append("g")
+        //                 .selectAll("states")
+        //                 .data(states)
+        //                 .enter()
+        //                 .append("path")
+        //                 .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+        //                 .attr("class", function(d,i) { return "triangles triangle-" + i; })
+        //                 .attr("d", "M 0 " + (-height/30) + " L " + (-width/30) + " " + (height/30) + "L " + (width/30) + " " + (height/30) + " Z")
+        //                 .style("fill","brown")
+        //                 .style("opacity",triagleOpacity);
+
+       
+    } else if (!A_P){
+        var square = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("rect")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .style("fill","yellow")
+                        .attr("width", 10)
+                        .attr("height", 10)
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);})
+                        .style("opacity",squareOpacity);
+
+        var rectangle = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("rect")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .style("fill","orange")
+                        .attr("width", 10)
+                        .attr("height", 20)
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);})
+                        .style("opacity",rectangleOpacity);
+        
+        var ellipse = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("ellipse")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .style("fill","blue")
+                        .attr("rx", 15)
+                        .attr("ry", 7)
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);})
+                        .style("opacity",ellipseOpacity);    
+                      
+
+        var circle = svg3.append("g")
+                        .selectAll("states")
+                        .data(states)
+                        .enter()
+                        .append("circle")
+                        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+                        .style("fill","green")
+                        .attr("r",20)
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);})
+                        .style("opacity",circleOpacity);
+
+        // var triangles = svg3.append("g")
+        //                 .selectAll("states")
+        //                 .data(states)
+        //                 .enter()
+        //                 .append("path")
+        //                 .style("fill","brown")
+        //                 .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+        //                 .attr("class", function(d,i) { return "triangles triangle-" + i; })
+        //                 .attr("d", "M 0 " + (-height/30) + " L " + (-width/30) + " " + (height/30) + "L " + (width/30) + " " + (height/30) + " Z")
+        //                 .style("opacity",triagleOpacity);
+    }
+       
+    
+    var linesonmap = svg1.append("g")
+        .selectAll('states')
+        .data(states)
+        .enter()
+        .append("path")
+        .attr("class","states")
+        .attr("d",path)
+        .style('fill', function(d,i){
+            var dataRow = countryById.get(d.properties.name)
+             
+            if (!A_P){
+                var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver]
+                var sum_array = array.reduce(function(a,b){
+                    return a+b;
+                },0);
+                if (sum_array >= 0 && sum_array <= 100000){
+                    // console.log(sum_array);
+                    return texture.url();
+                } else if (sum_array > 100000 && sum_array <= 1000000 ) {
+                    // console.log(sum_array);
+                    return texture1.url();
+                } else if (sum_array > 1000000 && sum_array <= 10000000){
+                    // console.log(sum_array);
+                    return texture2.url();
+                } else {
+                    // console.log(sum_array);
+                    return texture3.url();
+                };
+            }else if(A_P){
+                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 50000){
+                    // console.log(sum_array);
+                    return texture.url();
+                } else if (dataRow.areakm2 > 50000 && dataRow.areakm2 <= 250000 ) {
+                    // console.log(sum_array);
+                    return texture1.url();
+                } else if (dataRow.areakm2 > 250000 && dataRow.areakm2 <= 500000){
+                    // console.log(sum_array);
+                    return texture2.url();
+                } else {
+                    // console.log(sum_array);
+                    return texture3.url();
+                }
+            }
+            return "nothing";
+        })
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);});
+
+    var texturemap = svg2.append('g')
+                        .selectAll('states')
+                        .data(states)
+                        .enter()
+                        .append('path')
+                        .attr('class','states')
+                        .attr('d',path)
+                        .style('fill', function(d,i){
+                            var dataRow = countryById.get(d.properties.name)
+                            if (!A_P){
+                                var array = [dataRow.Under5Years,dataRow.r5to13Years,dataRow.r14to17Years,dataRow.r18to24Years,dataRow.r25to44Years,dataRow.r45to64Years,dataRow.r65YearsandOver] 
+                                var sum_array = array.reduce(function(a,b){
+                                    return a+b;
+                                },0);
+                                if (sum_array >= 0 && sum_array <= 100000){
+                                    // console.log(sum_array);
+                                    return text.url();
+                                } else if (sum_array > 100000 && sum_array <= 1000000 ) {
+                                    // console.log(sum_array);
+                                    return text1.url();
+                                } else if (sum_array > 1000000 && sum_array <= 10000000){
+                                    // console.log(sum_array);
+                                    return text2.url();
+                                } else {
+                                    // console.log(sum_array);
+                                    return text3.url();
+                                };
+                            }else if (A_P){
+                                
+                                if (dataRow.areakm2 >= 1000 && dataRow.areakm2 <= 50000){
+                                    // console.log(sum_array);
+                                    return text.url();
+                                } else if (dataRow.areakm2 > 50000 && dataRow.areakm2 <= 250000 ) {
+                                    // console.log(sum_array);
+                                    return text1.url();
+                                } else if (dataRow.areakm2 > 250000 && dataRow.areakm2 <= 500000){
+                                    // console.log(sum_array);
+                                    return text2.url();
+                                } else {
+                                    // console.log(sum_array);
+                                    return text3.url();
+                                }
+                            }
+                            return "nothing";
+                        })
+                        .on('mouseover', (d) => { tip.show(d)})
+                        .on('mouseout', (d) => { tip.hide(d);});
+
+
+
+    var under_5_bubbles = svg.append('g')
+
+        .attr('class', 'bubble')
+        .selectAll("circle")
+        .data(states)
+        .enter().append("circle")
+        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+        .attr("r", function(d, i) {
+            return getRadius(d);
+        })
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill",getColor)
+        .style("opacity",opacity1);
+
+    var r5to13Years_bubles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r5_13_Radius(d)
+        })
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill",r5_13_Color)
+        .style("opacity",opacity2);
+
+    var r14to17Years_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r14_17_Radius(d)
+        })
+        .attr("fill",r14_17_Color)
+        .style("opacity",opacity3);
+    
+    var r18to24Years_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r18_24_Radius(d)
+        })
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill",r18_24_Color)
+        .style("opacity",opacity4);
+    
+    var r25to44Years_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return r25_44_Radius(d)
+        })
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill",r25_44_Color)
+        .style("opacity",opacity5);
+    
+    var r45to64Years_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            // console.log(d,'!!!!');
+            return r45_64_Radius(d)
+        })
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill",r44_65_Color)
+        .style("opacity",opacity6);
+    
+    var Over65_bubbles = svg.append('g')
+        .attr('class','bubble')
+        .selectAll('circle')
+        .data(states)
+        .enter()
+        .append("circle")
+        .attr("transform",function(d){
+            return "translate(" + path.centroid(d) + ")";
+        })
+        .attr("r",function(d,i){
+            return Over65_Radius(d)
+        })
+        .on('mouseover', (d) => { tip.show(d)})
+        .on('mouseout', (d) => { tip.hide(d);})
+        .attr("fill",Over65_Color)
+        .style("opacity",opacity7);
+
+        // cs cy set location
+        var happy = `test
+        ing`
+
+    if (!A_P){
+        svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#b3e2cd")
+        svg.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#fdcdac")
+        svg.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#cbd5e8")
+        svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#f4cae4")
+        svg.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#e6f5c9")
+        svg.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#fff2ae")
+        svg.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#f1e2cc")
+
+        svg.append("text").attr("x", 60).attr("y", 20).text("5 and under").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 35).text("5 - 13 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 50).text("14 - 17 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 65).text("18 - 24 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 80).text("25 - 44 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 95).text("45 - 65 Age").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 110).text("Age 64 and over").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",200).attr("y", 90).text(`The bigger the circle and the more definitive`).style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",200).attr("y", 110).text("in opacity the larger the population group").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",200).attr("y", 130).text("The Colors are an amalgamation of color and opacity scale").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg1.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",15).attr("fill",texture.url())
+        svg1.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",15).attr("fill",texture1.url())
+        svg1.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",15).attr("fill",texture2.url())
+        svg1.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",15).attr("fill",texture3.url())
+
+        svg1.append("text").attr("x", 60).attr("y", 15).text("0-100000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 35).text("100000-1000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 55).text("1000000-10000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 75).text("Over 10000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        
+        svg2.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",20).attr("fill",text.url())
+        svg2.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",20).attr("fill",text1.url())
+        svg2.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",20).attr("fill",text2.url())
+        svg2.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",20).attr("fill",text3.url())
+
+        svg2.append("text").attr("x", 60).attr("y", 15).text("0-100000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 35).text("100000-1000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 55).text("1000000-10000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 75).text("Over 10000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg3.append("text").attr("x", 60).attr("y", 15).text("0-100000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 35).text("100000-1000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 55).text("1000000-10000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 75).text("Over 10000000 pop").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg3.append("rect").attr("x",10).attr("y",25).attr("width",10).attr("height",20).attr("fill","orange")
+        svg3.append("rect").attr("x",10).attr("y",5).attr("width",10).attr("height",10).attr("fill","yellow")
+        svg3.append("ellipse").attr("cx",15).attr("cy",55).attr("rx", 10).attr("ry",6).style("fill", "blue")
+        svg3.append("circle").attr("cx",15).attr("cy",75).attr("r", 6).style("fill", "green")
+
+
+        
+
+    } else if(A_P) {
+        console.log("TO DO");
+        svg.append("circle").attr("cx",50).attr("cy",15).attr("r", 6).style("fill", "#b3e2cd")
+        svg.append("circle").attr("cx",50).attr("cy",30).attr("r", 6).style("fill", "#fdcdac")
+        svg.append("circle").attr("cx",50).attr("cy",45).attr("r", 6).style("fill", "#cbd5e8")
+        svg.append("circle").attr("cx",50).attr("cy",60).attr("r", 6).style("fill", "#f4cae4")
+        svg.append("circle").attr("cx",50).attr("cy",75).attr("r", 6).style("fill", "#e6f5c9")
+        svg.append("circle").attr("cx",50).attr("cy",90).attr("r", 6).style("fill", "#fff2ae")
+        svg.append("circle").attr("cx",50).attr("cy",105).attr("r", 6).style("fill", "#f1e2cc")
+
+        svg.append("text").attr("x", 60).attr("y", 20).text("0-250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 35).text("250000 - 500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 50).text("500000-750000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 65).text("750000-1000000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 80).text("1000000-1250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 95).text("1250000-1500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", 60).attr("y", 110).text("Over 1500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",240).attr("y", 90).text("The bigger the circle and the more definitive").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",240).attr("y", 110).text("in opacity the larger the area.").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x",240).attr("y", 130).text("The Colors are an amalgamation of color and opacity scale").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg1.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",15).attr("fill",texture.url())
+        svg1.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",15).attr("fill",texture1.url())
+        svg1.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",15).attr("fill",texture2.url())
+        svg1.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",15).attr("fill",texture3.url())
+
+        svg1.append("text").attr("x", 60).attr("y", 15).text("1000-50000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 35).text("50000-250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 55).text("250000-500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg1.append("text").attr("x", 60).attr("y", 75).text("Over 500000").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg2.append("rect").attr("x",10).attr("y",5).attr("width",50).attr("height",20).attr("fill",text.url())
+        svg2.append("rect").attr("x",10).attr("y",25).attr("width",50).attr("height",20).attr("fill",text1.url())
+        svg2.append("rect").attr("x",10).attr("y",45).attr("width",50).attr("height",20).attr("fill",text2.url())
+        svg2.append("rect").attr("x",10).attr("y",65).attr("width",50).attr("height",20).attr("fill",text3.url())
+
+        svg2.append("text").attr("x", 60).attr("y", 15).text("1000-50000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 35).text("50000-250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 55).text("250000-500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg2.append("text").attr("x", 60).attr("y", 75).text("Over 500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+
+        svg3.append("circle").attr("cx",50).attr("cy",25).attr("r", 6).style("fill", "#b3e2cd")
+        svg3.append("circle").attr("cx",50).attr("cy",40).attr("r", 6).style("fill", "#fdcdac")
+        svg3.append("circle").attr("cx",50).attr("cy",55).attr("r", 6).style("fill", "#cbd5e8")
+        svg3.append("circle").attr("cx",50).attr("cy",70).attr("r", 6).style("fill", "#f4cae4")
+        svg3.append("circle").attr("cx",50).attr("cy",85).attr("r", 6).style("fill", "#e6f5c9")
+        svg3.append("circle").attr("cx",50).attr("cy",100).attr("r", 6).style("fill", "#fff2ae")
+        svg3.append("circle").attr("cx",50).attr("cy",115).attr("r", 6).style("fill", "#f1e2cc")
+        
+        svg3.append("text").attr("x", 60).attr("y", 30).text("0-250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 44).text("250000-500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 60).text("500000-750000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 75).text("750000-1000000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 90).text("1000000-1250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 105).text("1250000-1500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 120).text("1500000 over km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg3.append("text").attr("x", 60).attr("y", 10).text("JUST COLOR SCALE").style("font-size", "15px").attr("alignment-baseline","middle")
+        
+        svg4.append("rect").attr("x",10).attr("y",5).attr("width",10).attr("height",10).attr("fill","orange")
+        svg4.append("rect").attr("x",10).attr("y",20).attr("width",10).attr("height",20).attr("fill","yellow")
+        svg4.append("ellipse").attr("cx",15).attr("cy",55).attr("rx", 10).attr("ry",6).style("fill", "blue")
+        svg4.append("circle").attr("cx",15).attr("cy",75).attr("r", 6).style("fill", "green")
+        // svg4.append("circle")
+        //     .attr("class", function(d,i) { return "triangles triangle-" + i; })
+        //     .attr("d", "M 0 " + (-height/30) + " L " + (-width/30) + " " + (height/30) + "L " + (width/30) + " " + (height/30) + " Z")
+        //     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+        //     .style("fill","brown")
+        //     .style("opacity",1)
+
+        svg4.append("text").attr("x", 60).attr("y", 15).text("1000-50000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg4.append("text").attr("x", 60).attr("y", 35).text("50000-250000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg4.append("text").attr("x", 60).attr("y", 55).text("250000-500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg4.append("text").attr("x", 60).attr("y", 75).text("Over 500000 km^2").style("font-size", "15px").attr("alignment-baseline","middle")
+       
+
+        svg5.append("circle").attr("cx",50).attr("cy",50).attr("r", 6).style("fill", "black").style("opacity",0.1)
+        svg5.append("circle").attr("cx",70).attr("cy",50).attr("r", 6).style("fill", "black").style("opacity",0.9)
+        svg5.append("text").attr("x", 80).attr("y", 55).text("grayscale from light to dark").style("font-size", "15px").attr("alignment-baseline","middle")
+    };
+    
+
+    
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+I changed the csv columns for easier . notation reference.(fixed it with index notation)
+
+I also used USA.json, a topojson to generate my US maps and various imports/
+
+I then used a short .js file to handle my title changes
+
+Im having a git conflict. please go to this link for my us_map.html
+https://github.com/Tony363/D3-viz
